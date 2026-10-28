@@ -227,7 +227,7 @@ export const ArchiveListPage: React.FC = () => {
   return (
     <div>
       {/* Page Title & Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <Title level={3} style={{ margin: 0 }}>
             الأرشيف الطبي وإدارة الوثائق (Archive & Medical DMS)
@@ -256,7 +256,7 @@ export const ArchiveListPage: React.FC = () => {
           marginBottom: 16,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <Space>
             <SafetyCertificateOutlined style={{ fontSize: 24, color: '#2f54eb' }} />
             <div>
@@ -398,7 +398,7 @@ export const ArchiveListPage: React.FC = () => {
         </Row>
       ) : (
         <Card bordered={false}>
-          <Table dataSource={filteredArchives} columns={tableColumns} rowKey="id" pagination={{ pageSize: 8 }} />
+          <Table dataSource={filteredArchives} columns={tableColumns} rowKey="id" scroll={{ x: 750 }} pagination={{ pageSize: 8 }} />
         </Card>
       )}
 

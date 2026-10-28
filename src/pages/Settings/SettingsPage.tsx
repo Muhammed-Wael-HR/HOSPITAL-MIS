@@ -210,7 +210,7 @@ export const SettingsPage: React.FC = () => {
                   />
 
                   <Row gutter={16}>
-                    <Col span={12}>
+                    <Col xs={24} md={12}>
                       <Form.Item
                         name="nameAr"
                         label="اسم المنشأة الطبية (بالعربية)"
@@ -219,7 +219,7 @@ export const SettingsPage: React.FC = () => {
                         <Input placeholder="مثال: مستشفى النيل التخصصي" size="large" />
                       </Form.Item>
                     </Col>
-                    <Col span={12}>
+                    <Col xs={24} md={12}>
                       <Form.Item name="nameEn" label="اسم المنشأة (بالإنجليزية)">
                         <Input placeholder="مثال: Nile Specialized Hospital" size="large" />
                       </Form.Item>
@@ -227,17 +227,17 @@ export const SettingsPage: React.FC = () => {
                   </Row>
 
                   <Row gutter={16}>
-                    <Col span={8}>
+                    <Col xs={24} sm={12} md={8}>
                       <Form.Item name="taxNumber" label="رقم التسجيل الضريبي (الفاتورة الإلكترونية)">
                         <Input style={{ fontFamily: 'monospace' }} />
                       </Form.Item>
                     </Col>
-                    <Col span={8}>
+                    <Col xs={24} sm={12} md={8}>
                       <Form.Item name="commercialReg" label="رقم السجل التجاري">
                         <Input />
                       </Form.Item>
                     </Col>
-                    <Col span={8}>
+                    <Col xs={24} sm={12} md={8}>
                       <Form.Item name="gaharCode" label="كود الاعتماد الصحي (GAHAR)">
                         <Input style={{ fontFamily: 'monospace' }} />
                       </Form.Item>
@@ -245,17 +245,17 @@ export const SettingsPage: React.FC = () => {
                   </Row>
 
                   <Row gutter={16}>
-                    <Col span={8}>
+                    <Col xs={24} sm={12} md={8}>
                       <Form.Item name="phone" label="هاتف المستشفى">
                         <Input />
                       </Form.Item>
                     </Col>
-                    <Col span={8}>
+                    <Col xs={24} sm={12} md={8}>
                       <Form.Item name="hotline" label="الخط الساخن">
                         <Input />
                       </Form.Item>
                     </Col>
-                    <Col span={8}>
+                    <Col xs={24} sm={12} md={8}>
                       <Form.Item name="email" label="البريد الإلكتروني الرسمي">
                         <Input />
                       </Form.Item>
@@ -277,7 +277,7 @@ export const SettingsPage: React.FC = () => {
               label: `الأقسام والعيادات الطبية (${departments.length})`,
               children: (
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
                     <Text type="secondary">
                       يمكنك هنا إضافة أقسام جديدة أو تعديل وحذف الأقسام القائمة مع تحديث فوري للنظام
                     </Text>
@@ -294,6 +294,7 @@ export const SettingsPage: React.FC = () => {
                     dataSource={departments}
                     columns={departmentColumns}
                     rowKey="id"
+                    scroll={{ x: 700 }}
                     pagination={{ pageSize: 8 }}
                   />
                 </div>
@@ -335,12 +336,12 @@ export const SettingsPage: React.FC = () => {
                   </Form.Item>
 
                   <Row gutter={16}>
-                    <Col span={12}>
+                    <Col xs={24} sm={12}>
                       <Form.Item name="phone" label="رقم الهاتف">
                         <Input size="large" />
                       </Form.Item>
                     </Col>
-                    <Col span={12}>
+                    <Col xs={24} sm={12}>
                       <Form.Item name="email" label="البريد الإلكتروني">
                         <Input size="large" />
                       </Form.Item>

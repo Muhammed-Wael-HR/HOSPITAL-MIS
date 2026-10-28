@@ -97,7 +97,7 @@ export const DashboardPage: React.FC = () => {
   return (
     <div style={{ paddingBottom: 24 }}>
       {/* Page Title & Quick Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <Title level={3} style={{ margin: 0 }}>
             لوحة الإدارة والمعلومات الطبية (Hospital MIS Dashboard)
@@ -105,7 +105,7 @@ export const DashboardPage: React.FC = () => {
           <Text type="secondary">مؤشرات الأداء اللحظية وسير العمل في أقسام المستشفى</Text>
         </div>
 
-        <Space>
+        <Space wrap>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/patients')}>
             تسجيل مريض جديد
           </Button>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown, Space, Typography, Badge, message, Modal, Form, Input, Tag } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, Space, Typography, Badge, message, Modal, Form, Input, Tag, Drawer } from 'antd';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -42,6 +42,7 @@ export const MainLayout: React.FC = () => {
   const {
     language,
     setLanguage,
+    direction,
     theme,
     toggleTheme,
     sidebarCollapsed,
@@ -55,6 +56,20 @@ export const MainLayout: React.FC = () => {
   const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [profileForm] = Form.useForm();
   const [cloudStatus, setCloudStatus] = useState<'connected' | 'offline' | 'syncing' | 'error'>('offline');
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  const [mobileDrawerVisible, setMobileDrawerVisible] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setMobileDrawerVisible(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     return firebaseSync.onStatusChange((status) => {
@@ -92,6 +107,9 @@ export const MainLayout: React.FC = () => {
 
   const handleMenuClick = ({ key }: { key: string }) => {
     navigate(key);
+    if (isMobile) {
+      setMobileDrawerVisible(false);
+    }
   };
 
   const userMenuItems = [
@@ -146,78 +164,80 @@ export const MainLayout: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: '100vh', direction: language === 'ar' ? 'rtl' : 'ltr' }}>
-      <Sider
-        collapsible
-        collapsed={sidebarCollapsed}
-        onCollapse={toggleSidebar}
-        trigger={null}
-        width={260}
-        theme="dark"
-        style={{
-          overflow: 'auto',
-          height: '100vh',
-          position: 'sticky',
-          top: 0,
-          left: 0,
-          boxShadow: '2px 0 8px rgba(0,21,41,0.25)',
-          zIndex: 100,
-        }}
-      >
-        <div
+      {!isMobile && (
+        <Sider
+          collapsible
+          collapsed={sidebarCollapsed}
+          onCollapse={toggleSidebar}
+          trigger={null}
+          width={260}
+          theme="dark"
           style={{
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-            padding: sidebarCollapsed ? 0 : '0 16px',
-            background: '#002140',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            overflow: 'auto',
+            height: '100vh',
+            position: 'sticky',
+            top: 0,
+            left: 0,
+            boxShadow: '2px 0 8px rgba(0,21,41,0.25)',
+            zIndex: 100,
           }}
         >
           <div
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
+              height: 64,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontSize: 20,
-              boxShadow: '0 2px 6px rgba(24,144,255,0.4)',
-              marginRight: language === 'ar' ? 0 : 12,
-              marginLeft: language === 'ar' ? 12 : 0,
+              justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+              padding: sidebarCollapsed ? 0 : '0 16px',
+              background: '#002140',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
             }}
           >
-            <HeartFilled />
-          </div>
-          {!sidebarCollapsed && (
-            <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-              <Text strong style={{ color: '#fff', fontSize: 15, display: 'block' }}>
-                {hospitalSettings.nameAr}
-              </Text>
-              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
-                نظام المعلومات الصحي المتكامل (HIS)
-              </Text>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 8,
+                background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                fontSize: 20,
+                boxShadow: '0 2px 6px rgba(24,144,255,0.4)',
+                marginRight: language === 'ar' ? 0 : 12,
+                marginLeft: language === 'ar' ? 12 : 0,
+              }}
+            >
+              <HeartFilled />
             </div>
-          )}
-        </div>
+            {!sidebarCollapsed && (
+              <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <Text strong style={{ color: '#fff', fontSize: 15, display: 'block' }}>
+                  {hospitalSettings.nameAr}
+                </Text>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
+                  نظام المعلومات الصحي المتكامل (HIS)
+                </Text>
+              </div>
+            )}
+          </div>
 
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={getSelectedKey()}
-          onClick={handleMenuClick}
-          items={menuItems}
-          style={{ marginTop: 8 }}
-        />
-      </Sider>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={getSelectedKey()}
+            onClick={handleMenuClick}
+            items={menuItems}
+            style={{ marginTop: 8 }}
+          />
+        </Sider>
+      )}
 
       <Layout>
         <Header
           style={{
-            padding: '0 24px',
+            padding: isMobile ? '0 10px' : '0 24px',
             background: theme === 'dark' ? '#141414' : '#ffffff',
             display: 'flex',
             alignItems: 'center',
@@ -228,42 +248,55 @@ export const MainLayout: React.FC = () => {
             zIndex: 99,
           }}
         >
-          <Space direction="horizontal" size="middle">
+          <Space direction="horizontal" size={isMobile ? 'small' : 'middle'} style={{ flex: 1, marginRight: 8 }}>
             <Button
               type="text"
-              icon={sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={toggleSidebar}
-              style={{ fontSize: 16, width: 40, height: 40 }}
+              icon={isMobile ? <MenuUnfoldOutlined /> : sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => {
+                if (isMobile) {
+                  setMobileDrawerVisible(true);
+                } else {
+                  toggleSidebar();
+                }
+              }}
+              style={{ fontSize: 18, width: 38, height: 38 }}
             />
             <GlobalSearch />
           </Space>
 
-          <Space direction="horizontal" size="middle">
+          <Space direction="horizontal" size={isMobile ? 6 : 'middle'}>
             {/* Cloud Realtime Status Badge */}
             {cloudStatus === 'connected' && (
-              <Tag color="success" icon={<CloudServerOutlined />} style={{ cursor: 'pointer' }} onClick={() => navigate('/settings')}>
-                {language === 'ar' ? 'سحابي متصل' : 'Cloud Live'}
+              <Tag
+                color="success"
+                icon={<CloudServerOutlined />}
+                style={{ cursor: 'pointer', margin: 0 }}
+                onClick={() => navigate('/settings')}
+              >
+                {!isMobile && (language === 'ar' ? 'سحابي متصل' : 'Cloud Live')}
               </Tag>
             )}
             {cloudStatus === 'syncing' && (
-              <Tag color="processing" icon={<SyncOutlined spin />}>
-                {language === 'ar' ? 'جاري المزامنة...' : 'Syncing...'}
+              <Tag color="processing" icon={<SyncOutlined spin />} style={{ margin: 0 }}>
+                {!isMobile && (language === 'ar' ? 'مزامنة...' : 'Syncing')}
               </Tag>
             )}
             {cloudStatus === 'offline' && (
-              <Tag color="default" style={{ cursor: 'pointer' }} onClick={() => navigate('/settings')}>
-                {language === 'ar' ? 'محلي (Offline)' : 'Local Mode'}
+              <Tag color="default" style={{ cursor: 'pointer', margin: 0 }} onClick={() => navigate('/settings')}>
+                {!isMobile && (language === 'ar' ? 'محلي' : 'Local')}
               </Tag>
             )}
 
             {/* Language toggle */}
-            <Button
-              type="text"
-              icon={<TranslationOutlined />}
-              onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-            >
-              {language === 'ar' ? 'English' : 'العربية'}
-            </Button>
+            {!isMobile && (
+              <Button
+                type="text"
+                icon={<TranslationOutlined />}
+                onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
+              >
+                {language === 'ar' ? 'English' : 'العربية'}
+              </Button>
+            )}
 
             {/* Theme toggle */}
             <Button
@@ -291,7 +324,7 @@ export const MainLayout: React.FC = () => {
 
             {/* User Profile */}
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
-              <Space style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 6 }}>
+              <Space style={{ cursor: 'pointer', padding: isMobile ? '2px' : '4px 8px', borderRadius: 6 }}>
                 <Avatar
                   style={{
                     backgroundColor: '#1890ff',
@@ -300,14 +333,16 @@ export const MainLayout: React.FC = () => {
                   }}
                   icon={<UserOutlined />}
                 />
-                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-                  <Text strong style={{ fontSize: 13 }}>
-                    {adminProfile.displayName}
-                  </Text>
-                  <Text type="secondary" style={{ fontSize: 11 }}>
-                    {adminProfile.position}
-                  </Text>
-                </div>
+                {!isMobile && (
+                  <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+                    <Text strong style={{ fontSize: 13 }}>
+                      {adminProfile.displayName}
+                    </Text>
+                    <Text type="secondary" style={{ fontSize: 11 }}>
+                      {adminProfile.position}
+                    </Text>
+                  </div>
+                )}
               </Space>
             </Dropdown>
           </Space>
@@ -315,7 +350,7 @@ export const MainLayout: React.FC = () => {
 
         <Content
           style={{
-            margin: '20px 24px',
+            margin: isMobile ? '12px 8px' : '20px 24px',
             minHeight: 280,
             overflow: 'initial',
           }}
@@ -323,6 +358,67 @@ export const MainLayout: React.FC = () => {
           <Outlet />
         </Content>
       </Layout>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                fontSize: 16,
+              }}
+            >
+              <HeartFilled />
+            </div>
+            <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
+              <Text strong style={{ color: '#fff', fontSize: 14, display: 'block' }}>
+                {hospitalSettings.nameAr}
+              </Text>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}>
+                نظام المعلومات الصحي المتكامل
+              </Text>
+            </div>
+          </div>
+        }
+        placement={direction === 'rtl' ? 'right' : 'left'}
+        open={mobileDrawerVisible}
+        onClose={() => setMobileDrawerVisible(false)}
+        width={270}
+        styles={{
+          body: { padding: 0, background: '#001529' },
+          header: { background: '#002140', borderBottom: '1px solid rgba(255,255,255,0.08)' },
+        }}
+      >
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={getSelectedKey()}
+          onClick={handleMenuClick}
+          items={menuItems}
+          style={{ background: 'transparent' }}
+        />
+        <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 12 }}>
+          <Button
+            block
+            ghost
+            icon={<TranslationOutlined />}
+            onClick={() => {
+              setLanguage(language === 'ar' ? 'en' : 'ar');
+              setMobileDrawerVisible(false);
+            }}
+          >
+            {language === 'ar' ? 'English Language' : 'اللغة العربية'}
+          </Button>
+        </div>
+      </Drawer>
 
       {/* Edit Admin Profile Modal */}
       <Modal

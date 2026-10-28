@@ -165,7 +165,7 @@ export const InvoiceListPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <Title level={3} style={{ margin: 0 }}>
             الفوترة والحسابات الطبية (Billing & Invoices)
@@ -179,7 +179,7 @@ export const InvoiceListPage: React.FC = () => {
       </div>
 
       <Card bordered={false}>
-        <Table dataSource={invoices} columns={columns} rowKey="id" pagination={{ pageSize: 8 }} />
+        <Table dataSource={invoices} columns={columns} rowKey="id" scroll={{ x: 750 }} pagination={{ pageSize: 8 }} />
       </Card>
 
       {/* Create Invoice Modal */}

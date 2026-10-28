@@ -45,7 +45,8 @@ export const GlobalSearch: React.FC = () => {
 
   return (
     <AutoComplete
-      style={{ width: 340 }}
+      className="global-search-bar"
+      style={{ width: '100%', maxWidth: 320, minWidth: 100 }}
       options={value ? options : []}
       onSelect={handleSelect}
       onSearch={setValue}
@@ -53,7 +54,7 @@ export const GlobalSearch: React.FC = () => {
     >
       <Input
         prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-        placeholder="بحث سريع باسم المريض، رقم الملف (MRN)، أو الرقم القومي..."
+        placeholder="بحث سريع عن مريض (اسم / ملف / هاتف)..."
         allowClear
       />
     </AutoComplete>

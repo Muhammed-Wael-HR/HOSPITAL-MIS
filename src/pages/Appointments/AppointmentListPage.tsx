@@ -144,7 +144,7 @@ export const AppointmentListPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <Title level={3} style={{ margin: 0 }}>
             إدارة المواعيد والعيادات الخارجية (Appointments Management)
@@ -192,7 +192,7 @@ export const AppointmentListPage: React.FC = () => {
           </Col>
         </Row>
 
-        <Table dataSource={filteredAppointments} columns={columns} rowKey="id" pagination={{ pageSize: 8 }} />
+        <Table dataSource={filteredAppointments} columns={columns} rowKey="id" scroll={{ x: 750 }} pagination={{ pageSize: 8 }} />
       </Card>
 
       <AppointmentFormModal visible={modalVisible} onClose={() => setModalVisible(false)} />

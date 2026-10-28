@@ -177,7 +177,7 @@ export const PatientListPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <Title level={3} style={{ margin: 0 }}>
             سجل المرضى والملفات الطبية (Patients Directory)
@@ -247,6 +247,7 @@ export const PatientListPage: React.FC = () => {
           dataSource={filteredPatients}
           columns={columns}
           rowKey="id"
+          scroll={{ x: 750 }}
           pagination={{ pageSize: 8, showTotal: (total) => `إجمالي المرضى: ${total}` }}
         />
       </Card>

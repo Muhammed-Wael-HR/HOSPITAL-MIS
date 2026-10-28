@@ -62,7 +62,7 @@ export const BedMapPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <Title level={3} style={{ margin: 0 }}>
             خريطة الأسرّة التفاعلية (Inpatient Bed Map)
@@ -70,7 +70,7 @@ export const BedMapPage: React.FC = () => {
           <Text type="secondary">متابعة لحظية لإشغال أسرّة الأقسام الداخلية، الرعاية المركزة، والطوارئ</Text>
         </div>
 
-        <Space>
+        <Space wrap>
           <Button type="primary" icon={<MedicineBoxOutlined />} onClick={() => setAdmitModalVisible(true)}>
             تنويم مريض جديد
           </Button>
