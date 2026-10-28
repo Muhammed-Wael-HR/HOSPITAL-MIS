@@ -2,10 +2,10 @@
 # Runs using built-in PowerShell on any Windows machine (no Node.js needed!)
 
 $port = 3300
-$baseDir = Join-Path $PSScriptRoot "client\dist"
+$baseDir = Join-Path $PSScriptRoot "dist"
 
 if (-not (Test-Path $baseDir)) {
-    Write-Host "[X] Error: client\dist folder not found!" -ForegroundColor Red
+    Write-Host "[X] Error: dist folder not found!" -ForegroundColor Red
     Pause
     Exit
 }

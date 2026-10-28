@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
-const DIST_DIR = path.join(__dirname, 'client', 'dist');
+const DIST_DIR = path.join(__dirname, 'dist');
 const DEFAULT_PORT = 3300;
 
 const MIME_TYPES = {
