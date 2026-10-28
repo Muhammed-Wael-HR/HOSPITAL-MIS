@@ -337,4 +337,14 @@ html, body {
   .ant-typography h3, .ant-typography.ant-typography-h3 {
     font-size: 18px !important;
   }
+
+  /* Table pagination responsiveness */
+  .ant-pagination {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    justify-content: center !important;
+  }
+  .ant-table-pagination.ant-pagination {
+    margin: 12px 0 !important;
+  }
 }
