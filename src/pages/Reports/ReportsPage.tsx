@@ -3,6 +3,7 @@ import { Card, Row, Col, Typography, Select, DatePicker, Button, Table, Tag, Sta
 import { BarChartOutlined, DownloadOutlined, PrinterOutlined, RiseOutlined, FilePdfOutlined } from '@ant-design/icons';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { useHospitalStore } from '../../mockData/mockStore';
+import { DatabaseExportModal } from '../../components/DatabaseExport/DatabaseExportModal';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -33,6 +34,7 @@ const topDiagnoses = [
 
 export const ReportsPage: React.FC = () => {
   const [reportType, setReportType] = useState('REVENUE');
+  const [exportModalVisible, setExportModalVisible] = useState(false);
   const doctors = useHospitalStore((state) => state.doctors);
 
   const doctorPerformance = doctors.map((doc, idx) => ({
@@ -45,12 +47,16 @@ export const ReportsPage: React.FC = () => {
   }));
 
   const handleExport = (type: string) => {
-    message.success(`تم استخراج وتصدير تقرير الـ MIS بصيغة ${type} بنجاح`);
+    if (type === 'PDF') {
+      setExportModalVisible(true);
+    } else {
+      message.success(`تم استخراج وتصدير تقرير الـ MIS بصيغة ${type} بنجاح`);
+    }
   };
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <Title level={3} style={{ margin: 0 }}>
             التقارير الإدارية ومؤشرات الأداء (Hospital MIS Reports)
@@ -58,11 +64,11 @@ export const ReportsPage: React.FC = () => {
           <Text type="secondary">ذكاء الأعمال والتحليلات الإحصائية لدعم قرارات إدارة المستشفى والتشغيل</Text>
         </div>
 
-        <Space>
-          <Button icon={<FilePdfOutlined />} onClick={() => handleExport('PDF')}>
-            تصدير تقرير شامل (PDF)
+        <Space wrap>
+          <Button type="primary" danger icon={<FilePdfOutlined />} onClick={() => setExportModalVisible(true)}>
+            تصدير واستخراج قاعدة البيانات كاملة (PDF)
           </Button>
-          <Button type="primary" icon={<DownloadOutlined />} onClick={() => handleExport('Excel')}>
+          <Button icon={<DownloadOutlined />} onClick={() => handleExport('Excel')}>
             تصدير جداول البيانات (Excel)
           </Button>
         </Space>
@@ -184,6 +190,12 @@ export const ReportsPage: React.FC = () => {
           />
         </Card>
       )}
+
+      {/* Database PDF Export Modal */}
+      <DatabaseExportModal
+        visible={exportModalVisible}
+        onClose={() => setExportModalVisible(false)}
+      />
     </div>
   );
 };

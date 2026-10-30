@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ConfigProvider, theme as antTheme } from 'antd';
+import { ConfigProvider, theme as antTheme, Result, Card, Button } from 'antd';
 import arEG from 'antd/locale/ar_EG';
 import enUS from 'antd/locale/en_US';
 import dayjs from 'dayjs';
@@ -33,6 +33,29 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
+
+const PermissionRoute: React.FC<{ moduleKey: string; children: React.ReactNode }> = ({ moduleKey, children }) => {
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  if (!hasPermission(moduleKey)) {
+    return (
+      <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+        <Card style={{ maxWidth: 520, margin: '0 auto', borderRadius: 12 }}>
+          <Result
+            status="403"
+            title="403 - غير مصرح بالوصول"
+            subTitle="عذراً، هذا الحساب لا يمتلك صلاحية الوصول إلى هذا القسم الطبي أو الإداري. يرجى التواصل مع المدير العام للمستشفى لتعديل صلاحيات حسابك."
+            extra={
+              <Button type="primary" onClick={() => (window.location.hash = '#/')}>
+                العودة للوحة الرئيسية
+              </Button>
+            }
+          />
+        </Card>
+      </div>
+    );
   }
   return <>{children}</>;
 };
@@ -72,23 +95,23 @@ export const App: React.FC = () => {
               </ProtectedRoute>
             }
           >
-            <Route index element={<DashboardPage />} />
-            <Route path="patients" element={<PatientListPage />} />
-            <Route path="patients/:id" element={<PatientProfilePage />} />
-            <Route path="appointments" element={<AppointmentListPage />} />
-            <Route path="admissions" element={<BedMapPage />} />
-            <Route path="admissions/list" element={<AdmissionListPage />} />
-            <Route path="medical-records" element={<MedicalRecordListPage />} />
-            <Route path="laboratory" element={<LabOrderListPage />} />
-            <Route path="radiology" element={<RadiologyOrderListPage />} />
-            <Route path="pharmacy" element={<MedicationListPage />} />
-            <Route path="pharmacy/prescriptions" element={<PrescriptionListPage />} />
-            <Route path="billing" element={<InvoiceListPage />} />
-            <Route path="insurance" element={<InsuranceListPage />} />
-            <Route path="archive" element={<ArchiveListPage />} />
-            <Route path="hr" element={<HRPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
+            <Route index element={<PermissionRoute moduleKey="dashboard"><DashboardPage /></PermissionRoute>} />
+            <Route path="patients" element={<PermissionRoute moduleKey="patients"><PatientListPage /></PermissionRoute>} />
+            <Route path="patients/:id" element={<PermissionRoute moduleKey="patients"><PatientProfilePage /></PermissionRoute>} />
+            <Route path="appointments" element={<PermissionRoute moduleKey="appointments"><AppointmentListPage /></PermissionRoute>} />
+            <Route path="admissions" element={<PermissionRoute moduleKey="admissions"><BedMapPage /></PermissionRoute>} />
+            <Route path="admissions/list" element={<PermissionRoute moduleKey="admissions"><AdmissionListPage /></PermissionRoute>} />
+            <Route path="medical-records" element={<PermissionRoute moduleKey="medical_records"><MedicalRecordListPage /></PermissionRoute>} />
+            <Route path="laboratory" element={<PermissionRoute moduleKey="laboratory"><LabOrderListPage /></PermissionRoute>} />
+            <Route path="radiology" element={<PermissionRoute moduleKey="radiology"><RadiologyOrderListPage /></PermissionRoute>} />
+            <Route path="pharmacy" element={<PermissionRoute moduleKey="pharmacy"><MedicationListPage /></PermissionRoute>} />
+            <Route path="pharmacy/prescriptions" element={<PermissionRoute moduleKey="pharmacy"><PrescriptionListPage /></PermissionRoute>} />
+            <Route path="billing" element={<PermissionRoute moduleKey="billing"><InvoiceListPage /></PermissionRoute>} />
+            <Route path="insurance" element={<PermissionRoute moduleKey="insurance"><InsuranceListPage /></PermissionRoute>} />
+            <Route path="archive" element={<PermissionRoute moduleKey="archive"><ArchiveListPage /></PermissionRoute>} />
+            <Route path="hr" element={<PermissionRoute moduleKey="hr"><HRPage /></PermissionRoute>} />
+            <Route path="reports" element={<PermissionRoute moduleKey="reports"><ReportsPage /></PermissionRoute>} />
+            <Route path="settings" element={<PermissionRoute moduleKey="settings"><SettingsPage /></PermissionRoute>} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

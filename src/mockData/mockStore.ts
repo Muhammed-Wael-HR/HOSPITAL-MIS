@@ -20,6 +20,7 @@ import {
   InsuranceCompany,
   InsuranceClaim,
   Archive,
+  User,
 } from '../types';
 import {
   INITIAL_PATIENTS,
@@ -42,9 +43,11 @@ import {
   INITIAL_INSURANCE_COMPANIES,
   INITIAL_CLAIMS,
   INITIAL_ARCHIVES,
+  INITIAL_USERS,
 } from './initialData';
 
 interface HospitalStoreState {
+  users: User[];
   patients: Patient[];
   departments: Department[];
   rooms: Room[];
@@ -125,9 +128,27 @@ interface HospitalStoreState {
     tags?: string;
   }) => void;
   deleteArchiveDocument: (id: number) => void;
+
+  // User & Admin Management (نظام إدارة المسؤولين والصلاحيات)
+  addUser: (user: Omit<User, 'id'>) => User;
+  updateUser: (id: number, data: Partial<User>) => void;
+  deleteUser: (id: number) => void;
+  toggleUserStatus: (id: number) => void;
 }
 
 export const useHospitalStore = create<HospitalStoreState>((set, get) => ({
+  users: (() => {
+    try {
+      const saved = localStorage.getItem('hospital_mis_custom_users');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return INITIAL_USERS;
+  })(),
   patients: INITIAL_PATIENTS,
   departments: INITIAL_DEPARTMENTS,
   rooms: INITIAL_ROOMS,
@@ -625,5 +646,80 @@ export const useHospitalStore = create<HospitalStoreState>((set, get) => ({
     set((state) => ({
       archives: state.archives.filter((a) => a.id !== id),
     }));
+  },
+
+  // 👥 User & Admin Operations (إدارة المسؤولين والصلاحيات)
+  addUser: (userData) => {
+    const currentUsers = get().users;
+    const newId = currentUsers.length > 0 ? Math.max(...currentUsers.map((u) => u.id)) + 1 : 1;
+    const newUser: User = {
+      id: newId,
+      username: userData.username.trim().toLowerCase(),
+      password: userData.password || '123456',
+      fullName: userData.fullName || 'مسؤول نظام جديد',
+      role: userData.role || 'ADMIN',
+      isActive: userData.isActive !== undefined ? userData.isActive : true,
+      permissions: userData.permissions && userData.permissions.length > 0 ? userData.permissions : ['dashboard'],
+      isSuperAdmin: false,
+      createdAt: new Date().toISOString(),
+      phone: userData.phone || '',
+      notes: userData.notes || '',
+    };
+    const updated = [...currentUsers, newUser];
+    try {
+      localStorage.setItem('hospital_mis_custom_users', JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+    set({ users: updated });
+    return newUser;
+  },
+
+  updateUser: (id, data) => {
+    const updated = get().users.map((u) => {
+      if (u.id === id) {
+        return {
+          ...u,
+          ...data,
+          username: data.username ? data.username.trim().toLowerCase() : u.username,
+        };
+      }
+      return u;
+    });
+    try {
+      localStorage.setItem('hospital_mis_custom_users', JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+    set({ users: updated });
+  },
+
+  deleteUser: (id) => {
+    const user = get().users.find((u) => u.id === id);
+    if (user?.isSuperAdmin) {
+      return; // Cannot delete master super admin
+    }
+    const updated = get().users.filter((u) => u.id !== id);
+    try {
+      localStorage.setItem('hospital_mis_custom_users', JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+    set({ users: updated });
+  },
+
+  toggleUserStatus: (id) => {
+    const updated = get().users.map((u) => {
+      if (u.id === id && !u.isSuperAdmin) {
+        return { ...u, isActive: !u.isActive };
+      }
+      return u;
+    });
+    try {
+      localStorage.setItem('hospital_mis_custom_users', JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+    set({ users: updated });
   },
 }));

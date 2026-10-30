@@ -156,6 +156,12 @@ class FirebaseSyncManager {
       if (cloudData.invoices) useHospitalStore.setState({ invoices: cloudData.invoices });
       if (cloudData.claims) useHospitalStore.setState({ claims: cloudData.claims });
       if (cloudData.archives) useHospitalStore.setState({ archives: cloudData.archives });
+      if (cloudData.users && Array.isArray(cloudData.users) && cloudData.users.length > 0) {
+        useHospitalStore.setState({ users: cloudData.users });
+        try {
+          localStorage.setItem('hospital_mis_custom_users', JSON.stringify(cloudData.users));
+        } catch (e) {}
+      }
 
       // Update App Identity / Admin Profile
       if (cloudData.hospitalSettings) {
@@ -205,6 +211,7 @@ class FirebaseSyncManager {
         invoices: hospitalState.invoices,
         claims: hospitalState.claims,
         archives: hospitalState.archives,
+        users: hospitalState.users,
         hospitalSettings: appState.hospitalSettings,
         adminProfile: appState.adminProfile,
       };

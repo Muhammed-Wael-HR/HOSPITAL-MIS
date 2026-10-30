@@ -25,12 +25,14 @@ import {
   HeartFilled,
   CloudServerOutlined,
   SyncOutlined,
+  FilePdfOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAppStore } from '../../store/appStore';
 import { useAuthStore } from '../../store/authStore';
 import { firebaseSync } from '../../services/firebaseSync';
 import { GlobalSearch } from './GlobalSearch';
+import { DatabaseExportModal } from '../DatabaseExport/DatabaseExportModal';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -51,9 +53,10 @@ export const MainLayout: React.FC = () => {
     adminProfile,
     setAdminProfile,
   } = useAppStore();
-  const { user, logout } = useAuthStore();
+  const { user, logout, hasPermission } = useAuthStore();
 
   const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
   const [profileForm] = Form.useForm();
   const [cloudStatus, setCloudStatus] = useState<'connected' | 'offline' | 'syncing' | 'error'>('offline');
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
@@ -88,22 +91,25 @@ export const MainLayout: React.FC = () => {
     }
   };
 
-  const menuItems = [
-    { key: '/', icon: <DashboardOutlined />, label: language === 'ar' ? 'لوحة التحكم الرئيسية' : 'Dashboard' },
-    { key: '/patients', icon: <UserOutlined />, label: language === 'ar' ? 'سجل المرضى والملفات' : 'Patients Directory' },
-    { key: '/appointments', icon: <CalendarOutlined />, label: language === 'ar' ? 'إدارة المواعيد والعيادات' : 'Appointments' },
-    { key: '/admissions', icon: <MedicineBoxOutlined />, label: language === 'ar' ? 'التنويم وخريطة الأسرّة' : 'Inpatients & Beds' },
-    { key: '/medical-records', icon: <FileTextOutlined />, label: language === 'ar' ? 'السجلات الطبية (EMR)' : 'Medical Records' },
-    { key: '/laboratory', icon: <ExperimentOutlined />, label: language === 'ar' ? 'المختبر والتحاليل' : 'Laboratory (LIS)' },
-    { key: '/radiology', icon: <ScanOutlined />, label: language === 'ar' ? 'قسم الأشعة والتصوير' : 'Radiology (RIS)' },
-    { key: '/pharmacy', icon: <ShopOutlined />, label: language === 'ar' ? 'الصيدلية والمخزون الدوائي' : 'Pharmacy & Stock' },
-    { key: '/billing', icon: <DollarOutlined />, label: language === 'ar' ? 'الفوترة والحسابات' : 'Billing & Invoices' },
-    { key: '/insurance', icon: <SafetyCertificateOutlined />, label: language === 'ar' ? 'التأمين الطبي والمطالبات' : 'Insurance & Claims' },
-    { key: '/archive', icon: <FolderOpenOutlined />, label: language === 'ar' ? 'الأرشيف وإدارة الوثائق' : 'Archive & DMS' },
-    { key: '/hr', icon: <TeamOutlined />, label: language === 'ar' ? 'الأطقم الطبية والموظفين' : 'Staff & HR' },
-    { key: '/reports', icon: <BarChartOutlined />, label: language === 'ar' ? 'التقارير والمؤشرات (MIS)' : 'MIS Reports' },
-    { key: '/settings', icon: <SettingOutlined />, label: language === 'ar' ? 'إعدادات النظام والأقسام' : 'System Settings' },
+  const ALL_MENU_DEFINITIONS = [
+    { key: '/', moduleKey: 'dashboard', icon: <DashboardOutlined />, label: language === 'ar' ? 'لوحة التحكم الرئيسية' : 'Dashboard' },
+    { key: '/patients', moduleKey: 'patients', icon: <UserOutlined />, label: language === 'ar' ? 'سجل المرضى والملفات' : 'Patients Directory' },
+    { key: '/appointments', moduleKey: 'appointments', icon: <CalendarOutlined />, label: language === 'ar' ? 'إدارة المواعيد والعيادات' : 'Appointments' },
+    { key: '/admissions', moduleKey: 'admissions', icon: <MedicineBoxOutlined />, label: language === 'ar' ? 'التنويم وخريطة الأسرّة' : 'Inpatients & Beds' },
+    { key: '/medical-records', moduleKey: 'medical_records', icon: <FileTextOutlined />, label: language === 'ar' ? 'السجلات الطبية (EMR)' : 'Medical Records' },
+    { key: '/laboratory', moduleKey: 'laboratory', icon: <ExperimentOutlined />, label: language === 'ar' ? 'المختبر والتحاليل' : 'Laboratory (LIS)' },
+    { key: '/radiology', moduleKey: 'radiology', icon: <ScanOutlined />, label: language === 'ar' ? 'قسم الأشعة والتصوير' : 'Radiology (RIS)' },
+    { key: '/pharmacy', moduleKey: 'pharmacy', icon: <ShopOutlined />, label: language === 'ar' ? 'الصيدلية والمخزون الدوائي' : 'Pharmacy & Stock' },
+    { key: '/billing', moduleKey: 'billing', icon: <DollarOutlined />, label: language === 'ar' ? 'الفوترة والحسابات' : 'Billing & Invoices' },
+    { key: '/insurance', moduleKey: 'insurance', icon: <SafetyCertificateOutlined />, label: language === 'ar' ? 'التأمين الطبي والمطالبات' : 'Insurance & Claims' },
+    { key: '/archive', moduleKey: 'archive', icon: <FolderOpenOutlined />, label: language === 'ar' ? 'الأرشيف وإدارة الوثائق' : 'Archive & DMS' },
+    { key: '/hr', moduleKey: 'hr', icon: <TeamOutlined />, label: language === 'ar' ? 'الأطقم الطبية والموظفين' : 'Staff & HR' },
+    { key: '/reports', moduleKey: 'reports', icon: <BarChartOutlined />, label: language === 'ar' ? 'التقارير والمؤشرات (MIS)' : 'MIS Reports' },
+    { key: '/settings', moduleKey: 'settings', icon: <SettingOutlined />, label: language === 'ar' ? 'إعدادات النظام والأقسام' : 'System Settings' },
   ];
+
+  // RBAC Permission Filter: only display authorized modules
+  const menuItems = ALL_MENU_DEFINITIONS.filter((item) => hasPermission(item.moduleKey));
 
   const handleMenuClick = ({ key }: { key: string }) => {
     navigate(key);
@@ -116,16 +122,22 @@ export const MainLayout: React.FC = () => {
     {
       key: 'profile-info',
       label: (
-        <div>
-          <Text strong>{adminProfile.displayName}</Text>
+        <div style={{ padding: '2px 0' }}>
+          <Text strong>{user?.fullName || adminProfile.displayName}</Text>
           <br />
           <Text type="secondary" style={{ fontSize: 12 }}>
-            {adminProfile.position} ({user?.role || 'SUPER_ADMIN'})
+            @{user?.username || 'admin'} ({user?.isSuperAdmin ? 'المسؤول الأساسي' : user?.role})
           </Text>
         </div>
       ),
     },
     { type: 'divider' as const },
+    {
+      key: 'database-pdf',
+      icon: <FilePdfOutlined style={{ color: '#ff4d4f' }} />,
+      label: 'تصدير واستخراج قاعدة البيانات (PDF)',
+      onClick: () => setExportModalVisible(true),
+    },
     {
       key: 'edit-profile',
       icon: <UserOutlined />,
@@ -138,7 +150,7 @@ export const MainLayout: React.FC = () => {
     {
       key: 'settings',
       icon: <SettingOutlined />,
-      label: language === 'ar' ? 'إعدادات المنشأة والنظام' : 'Hospital Settings',
+      label: language === 'ar' ? 'إعدادات المنشأة والمستخدمين' : 'Hospital Settings & Users',
       onClick: () => navigate('/settings'),
     },
     {
@@ -147,9 +159,17 @@ export const MainLayout: React.FC = () => {
       danger: true,
       label: language === 'ar' ? 'تسجيل الخروج' : 'Logout',
       onClick: () => {
-        logout();
-        message.info(language === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out successfully');
-        navigate('/login');
+        Modal.confirm({
+          title: 'تأكيد تسجيل الخروج',
+          content: 'هل تريد تسجيل الخروج من النظام والعودة لشاشة الدخول؟',
+          okText: 'نعم، تسجيل الخروج',
+          cancelText: 'إلغاء',
+          onOk: () => {
+            logout();
+            message.info(language === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out successfully');
+            navigate('/login');
+          },
+        });
       },
     },
   ];
@@ -287,6 +307,18 @@ export const MainLayout: React.FC = () => {
               </Tag>
             )}
 
+            {/* Database PDF Export Quick Button */}
+            <Button
+              type="primary"
+              danger
+              icon={<FilePdfOutlined />}
+              size={isMobile ? 'small' : 'middle'}
+              onClick={() => setExportModalVisible(true)}
+              style={{ fontWeight: 600 }}
+            >
+              {!isMobile && 'تصدير قاعدة البيانات (PDF)'}
+            </Button>
+
             {/* Language toggle */}
             {!isMobile && (
               <Button
@@ -336,10 +368,10 @@ export const MainLayout: React.FC = () => {
                 {!isMobile && (
                   <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                     <Text strong style={{ fontSize: 13 }}>
-                      {adminProfile.displayName}
+                      {user?.fullName || adminProfile.displayName}
                     </Text>
                     <Text type="secondary" style={{ fontSize: 11 }}>
-                      {adminProfile.position}
+                      {user?.isSuperAdmin ? 'المسؤول الأساسي' : user?.role || adminProfile.position}
                     </Text>
                   </div>
                 )}
@@ -455,6 +487,12 @@ export const MainLayout: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Database PDF Export Modal */}
+      <DatabaseExportModal
+        visible={exportModalVisible}
+        onClose={() => setExportModalVisible(false)}
+      />
     </Layout>
   );
 };

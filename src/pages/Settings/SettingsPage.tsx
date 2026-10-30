@@ -16,6 +16,10 @@ import {
   Modal,
   Popconfirm,
   Select,
+  Checkbox,
+  Switch,
+  Tooltip,
+  Divider,
 } from 'antd';
 import {
   SettingOutlined,
@@ -30,11 +34,20 @@ import {
   CloudServerOutlined,
   ReloadOutlined,
   CheckOutlined,
+  TeamOutlined,
+  KeyOutlined,
+  SafetyCertificateOutlined,
+  CrownOutlined,
+  FilePdfOutlined,
+  DownloadOutlined,
+  LockOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons';
 import { useHospitalStore } from '../../mockData/mockStore';
 import { useAppStore } from '../../store/appStore';
 import { firebaseSync } from '../../services/firebaseSync';
-import { Department } from '../../types';
+import { Department, User, ALL_SYSTEM_MODULES } from '../../types';
+import { DatabaseExportModal } from '../../components/DatabaseExport/DatabaseExportModal';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -44,6 +57,12 @@ export const SettingsPage: React.FC = () => {
   const addDepartment = useHospitalStore((state) => state.addDepartment);
   const updateDepartment = useHospitalStore((state) => state.updateDepartment);
   const deleteDepartment = useHospitalStore((state) => state.deleteDepartment);
+
+  const users = useHospitalStore((state) => state.users);
+  const addUser = useHospitalStore((state) => state.addUser);
+  const updateUser = useHospitalStore((state) => state.updateUser);
+  const deleteUser = useHospitalStore((state) => state.deleteUser);
+  const toggleUserStatus = useHospitalStore((state) => state.toggleUserStatus);
 
   const {
     hospitalSettings,
@@ -55,9 +74,15 @@ export const SettingsPage: React.FC = () => {
   const [hospitalForm] = Form.useForm();
   const [adminForm] = Form.useForm();
   const [deptForm] = Form.useForm();
+  const [userForm] = Form.useForm();
 
   const [deptModalVisible, setDeptModalVisible] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
+
+  const [userModalVisible, setUserModalVisible] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
 
   // Save hospital profile
   const handleSaveHospital = (values: any) => {
@@ -174,17 +199,240 @@ export const SettingsPage: React.FC = () => {
     },
   ];
 
+  const handleApplyPreset = (preset: 'ALL' | 'RECEPTION' | 'BILLING' | 'PHARMACY' | 'DOCTOR' | 'ARCHIVE') => {
+    let perms: string[] = [];
+    switch (preset) {
+      case 'ALL':
+        perms = ALL_SYSTEM_MODULES.map((m) => m.key);
+        break;
+      case 'RECEPTION':
+        perms = ['dashboard', 'patients', 'appointments', 'admissions'];
+        break;
+      case 'BILLING':
+        perms = ['dashboard', 'billing', 'insurance', 'reports'];
+        break;
+      case 'PHARMACY':
+        perms = ['dashboard', 'pharmacy', 'reports'];
+        break;
+      case 'DOCTOR':
+        perms = ['dashboard', 'patients', 'appointments', 'admissions', 'medical_records', 'laboratory', 'radiology'];
+        break;
+      case 'ARCHIVE':
+        perms = ['dashboard', 'archive', 'patients'];
+        break;
+    }
+    setSelectedPermissions(perms);
+    userForm.setFieldsValue({ permissions: perms });
+    message.info('تم تطبيق قالب الصلاحيات المحدد بنجاح');
+  };
+
+  const openUserModal = (targetUser?: User) => {
+    if (targetUser) {
+      setEditingUser(targetUser);
+      setSelectedPermissions(targetUser.permissions || []);
+      userForm.setFieldsValue({
+        username: targetUser.username,
+        fullName: targetUser.fullName,
+        password: targetUser.password || '',
+        role: targetUser.role,
+        phone: targetUser.phone,
+        notes: targetUser.notes,
+        isActive: targetUser.isActive,
+        permissions: targetUser.permissions || [],
+      });
+    } else {
+      setEditingUser(null);
+      const defaultPerms = ['dashboard', 'patients'];
+      setSelectedPermissions(defaultPerms);
+      userForm.resetFields();
+      userForm.setFieldsValue({
+        role: 'ADMIN',
+        isActive: true,
+        permissions: defaultPerms,
+      });
+    }
+    setUserModalVisible(true);
+  };
+
+  const handleSaveUser = async () => {
+    try {
+      const values = await userForm.validateFields();
+      const perms = selectedPermissions.length > 0 ? selectedPermissions : ['dashboard'];
+
+      if (editingUser) {
+        updateUser(editingUser.id, {
+          username: values.username,
+          fullName: values.fullName,
+          password: values.password || editingUser.password,
+          role: values.role,
+          phone: values.phone,
+          notes: values.notes,
+          isActive: values.isActive,
+          permissions: perms,
+        });
+        message.success(`تم تحديث بيانات وصلاحيات المسؤول "${values.fullName}" بنجاح!`);
+      } else {
+        addUser({
+          username: values.username,
+          fullName: values.fullName,
+          password: values.password || '123456',
+          role: values.role || 'ADMIN',
+          phone: values.phone,
+          notes: values.notes,
+          isActive: values.isActive !== undefined ? values.isActive : true,
+          permissions: perms,
+        });
+        message.success(`تم إنشاء حساب المسؤول الجديد "${values.fullName}" بنجاح! يمكنه الآن تسجيل الدخول مباشرة.`);
+      }
+      setUserModalVisible(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const userColumns = [
+    {
+      title: 'اسم الدخول (Username)',
+      dataIndex: 'username',
+      key: 'username',
+      render: (u: string, record: User) => (
+        <Space>
+          {record.isSuperAdmin ? (
+            <CrownOutlined style={{ color: '#faad14', fontSize: 16 }} />
+          ) : (
+            <UserOutlined style={{ color: '#1890ff' }} />
+          )}
+          <Text strong style={{ fontFamily: 'monospace', fontSize: 14 }}>
+            {u}
+          </Text>
+          {record.isSuperAdmin && <Tag color="gold">المسؤول الأساسي</Tag>}
+        </Space>
+      ),
+    },
+    {
+      title: 'الاسم الكامل للمسؤول',
+      dataIndex: 'fullName',
+      key: 'fullName',
+      render: (name: string) => <Text strong>{name}</Text>,
+    },
+    {
+      title: 'كلمة المرور',
+      dataIndex: 'password',
+      key: 'password',
+      render: (pass: string) => (
+        <Tag color="purple" style={{ fontFamily: 'monospace', fontSize: 12 }}>
+          <KeyOutlined style={{ marginRight: 4 }} />
+          {pass || 'password123'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'الدور الوظيفي',
+      dataIndex: 'role',
+      key: 'role',
+      render: (role: string, record: User) => (
+        <Tag color={record.isSuperAdmin ? 'red' : record.role === 'DOCTOR' ? 'cyan' : record.role === 'ACCOUNTANT' ? 'green' : 'blue'}>
+          {record.isSuperAdmin ? 'المدير العام (Super Admin)' : role}
+        </Tag>
+      ),
+    },
+    {
+      title: 'الأقسام والصلاحيات الممنوحة',
+      dataIndex: 'permissions',
+      key: 'permissions',
+      render: (perms: string[], record: User) => {
+        if (record.isSuperAdmin) {
+          return <Tag color="success">كامل صلاحيات النظام (14 قسماً)</Tag>;
+        }
+        if (!perms || perms.length === 0) {
+          return <Tag color="default">لا توجد صلاحيات</Tag>;
+        }
+        return (
+          <Space wrap size={[0, 4]}>
+            {perms.map((p) => {
+              const mod = ALL_SYSTEM_MODULES.find((m) => m.key === p);
+              return (
+                <Tag key={p} color="cyan">
+                  {mod?.nameAr || p}
+                </Tag>
+              );
+            })}
+          </Space>
+        );
+      },
+    },
+    {
+      title: 'الحالة',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: (act: boolean, record: User) => (
+        <Switch
+          checked={act}
+          disabled={record.isSuperAdmin}
+          checkedChildren="نشط"
+          unCheckedChildren="معطل"
+          onChange={() => toggleUserStatus(record.id)}
+        />
+      ),
+    },
+    {
+      title: 'الإجراءات',
+      key: 'actions',
+      render: (_: any, record: User) => (
+        <Space size="small">
+          <Button
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => openUserModal(record)}
+          >
+            تعديل
+          </Button>
+
+          {!record.isSuperAdmin && (
+            <Popconfirm
+              title="تأكيد حذف حساب المسؤول"
+              description={`هل أنت متأكد من حذف حساب "${record.fullName}" (${record.username}) نهائياً؟`}
+              onConfirm={() => {
+                deleteUser(record.id);
+                message.success('تم حذف الحساب بنجاح');
+              }}
+              okText="نعم، حذف"
+              cancelText="إلغاء"
+              okButtonProps={{ danger: true }}
+            >
+              <Button size="small" danger icon={<DeleteOutlined />}>
+                حذف
+              </Button>
+            </Popconfirm>
+          )}
+        </Space>
+      ),
+    },
+  ];
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <Title level={3} style={{ margin: 0 }}>
             إعدادات النظام والتهيئة العامة (System Settings & Customization)
           </Title>
           <Text type="secondary">
-            إدارة هوية المنشأة الطبية، الأقسام والعيادات، بيانات المدير العام، والربط الحكومي
+            إدارة هوية المنشأة الطبية، حسابات المسؤولين والصلاحيات، الأقسام والعيادات، واستخراج قاعدة البيانات
           </Text>
         </div>
+
+        <Space wrap>
+          <Button
+            type="primary"
+            danger
+            icon={<FilePdfOutlined />}
+            size="large"
+            onClick={() => setExportModalVisible(true)}
+          >
+            استخراج قاعدة البيانات كاملة (PDF)
+          </Button>
+        </Space>
       </div>
 
       <Card bordered={false}>
@@ -270,6 +518,52 @@ export const SettingsPage: React.FC = () => {
                     حفظ وتحديث بيانات المنشأة فورا
                   </Button>
                 </Form>
+              ),
+            },
+            {
+              key: 'usersManagement',
+              label: (
+                <span>
+                  <TeamOutlined /> مسؤولي النظام والصلاحيات ({users.length})
+                </span>
+              ),
+              children: (
+                <div>
+                  <Alert
+                    message="نظام إدارة المسؤولين والصلاحيات والتحكم بالدخول (Role-Based Access Control - RBAC)"
+                    description="أنت بصفتك المدير العام والمسؤول الأساسي للنظام، تمتلك الصلاحية الكاملة لإنشاء حسابات جديدة، تعيين اسم مستخدم وكلمة مرور خاصة لكل موظف أو طبيب أو مسؤول، وتحديد الأقسام التي يحق له فقط فتحها واستخدامها."
+                    type="success"
+                    showIcon
+                    icon={<SafetyCertificateOutlined />}
+                    style={{ marginBottom: 20 }}
+                  />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+                    <div>
+                      <Title level={5} style={{ margin: 0 }}>حسابات مسؤولي النظام والموظفين المصرح لهم</Title>
+                      <Text type="secondary" style={{ fontSize: 13 }}>
+                        كل مسؤول يسجل دخوله ببياناته الخاصة ويدخل فقط على الأقسام المحددة له في الجدول أدناه.
+                      </Text>
+                    </div>
+
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      size="large"
+                      onClick={() => openUserModal()}
+                    >
+                      + إضافة مسؤول / مستخدم جديد
+                    </Button>
+                  </div>
+
+                  <Table
+                    dataSource={users}
+                    columns={userColumns}
+                    rowKey="id"
+                    scroll={{ x: 800 }}
+                    pagination={{ pageSize: 8 }}
+                  />
+                </div>
               ),
             },
             {
@@ -526,6 +820,145 @@ export const SettingsPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Add / Edit Admin User Modal */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <TeamOutlined style={{ color: '#1890ff' }} />
+            <span>{editingUser ? `تعديل بيانات وصلاحيات المسؤول: ${editingUser.fullName}` : 'إضافة حساب مسؤول / مستخدم جديد'}</span>
+          </div>
+        }
+        open={userModalVisible}
+        onCancel={() => setUserModalVisible(false)}
+        onOk={handleSaveUser}
+        okText={editingUser ? 'حفظ وتحديث الصلاحيات' : 'إنشاء حساب المسؤول'}
+        cancelText="إلغاء"
+        width={720}
+      >
+        <Form form={userForm} layout="vertical">
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="username"
+                label="اسم المستخدم (Username - للدخول)"
+                rules={[{ required: true, message: 'اسم المستخدم مطلوب للدخول' }]}
+              >
+                <Input
+                  prefix={<UserOutlined style={{ color: '#1890ff' }} />}
+                  placeholder="مثال: reception2, dr_ahmed..."
+                  disabled={editingUser?.isSuperAdmin}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="fullName"
+                label="الاسم الكامل للمسؤول / الموظف"
+                rules={[{ required: true, message: 'الاسم الكامل مطلوب' }]}
+              >
+                <Input placeholder="مثال: د. أحمد حسام، أ. مروة كمال..." />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="password"
+                label="كلمة المرور الخاصة به (Password)"
+                rules={[{ required: true, message: 'كلمة المرور مطلوبة' }]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined style={{ color: '#1890ff' }} />}
+                  placeholder="أدخل الرقم السري للحساب"
+                />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="role"
+                label="الدور الوظيفي"
+                rules={[{ required: true, message: 'الدور الوظيفي مطلوب' }]}
+              >
+                <Select disabled={editingUser?.isSuperAdmin}>
+                  <Option value="ADMIN">مسؤول إداري عام (Admin)</Option>
+                  <Option value="DOCTOR">طبيب بشري / استشاري (Doctor)</Option>
+                  <Option value="NURSE">طاقم تمريض (Nurse)</Option>
+                  <Option value="PHARMACIST">صيدلي (Pharmacist)</Option>
+                  <Option value="LAB_TECH">فني مختبر ومعمل (Lab Tech)</Option>
+                  <Option value="RADIOLOGY_TECH">فني أشعة وتصوير (Radiology Tech)</Option>
+                  <Option value="ACCOUNTANT">محاسب ومسؤول فوترة (Accountant)</Option>
+                  <Option value="RECEPTIONIST">مسؤول استقبال وعيادات (Receptionist)</Option>
+                  <Option value="ARCHIVIST">أمين ومسؤول الأرشيف (Archivist)</Option>
+                  <Option value="HR">مسؤول شؤون عاملين (HR)</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item name="phone" label="رقم الهاتف">
+                <Input placeholder="01012345678" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item name="notes" label="ملاحظات أو القسم الإداري التابع له">
+                <Input placeholder="مثال: عيادات الدور الأول، صيدلية الطوارئ..." />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Divider style={{ margin: '12px 0' }} />
+
+          {/* Granular Permissions Section */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
+              <Text strong style={{ fontSize: 13, color: '#1890ff' }}>
+                <SafetyCertificateOutlined /> حدد الأقسام المسموح له بفتحها واستخدامها (Granular Permissions):
+              </Text>
+              <Space wrap size="small">
+                <Button size="small" type="dashed" onClick={() => handleApplyPreset('ALL')}>كامل الصلاحيات</Button>
+                <Button size="small" type="dashed" onClick={() => handleApplyPreset('RECEPTION')}>استقبال</Button>
+                <Button size="small" type="dashed" onClick={() => handleApplyPreset('BILLING')}>حسابات</Button>
+                <Button size="small" type="dashed" onClick={() => handleApplyPreset('PHARMACY')}>صيدلية</Button>
+                <Button size="small" type="dashed" onClick={() => handleApplyPreset('DOCTOR')}>طبيب</Button>
+                <Button size="small" type="dashed" onClick={() => handleApplyPreset('ARCHIVE')}>أرشيف</Button>
+              </Space>
+            </div>
+
+            <Checkbox.Group
+              value={selectedPermissions}
+              onChange={(checkedValues) => setSelectedPermissions(checkedValues as string[])}
+              style={{ width: '100%' }}
+            >
+              <Row gutter={[12, 10]}>
+                {ALL_SYSTEM_MODULES.map((mod) => (
+                  <Col key={mod.key} xs={24} sm={12}>
+                    <Card size="small" style={{ borderRadius: 6, background: selectedPermissions.includes(mod.key) ? '#f0f5ff' : '#fafafa' }}>
+                      <Checkbox value={mod.key} style={{ fontWeight: 600 }}>
+                        {mod.nameAr}
+                      </Checkbox>
+                      <div style={{ fontSize: 11, color: '#8c8c8c', marginRight: 24 }}>
+                        {mod.descriptionAr}
+                      </div>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </Checkbox.Group>
+          </div>
+        </Form>
+      </Modal>
+
+      {/* Database PDF Export Modal */}
+      <DatabaseExportModal
+        visible={exportModalVisible}
+        onClose={() => setExportModalVisible(false)}
+      />
     </div>
   );
 };

@@ -1,48 +1,75 @@
 import React, { useState } from 'react';
-import { Card, Form, Input, Button, Typography, Space, Tag, message } from 'antd';
-import { UserOutlined, LockOutlined, HeartFilled, SafetyOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Button, Typography, Space, Tag, message, Alert, Tooltip, Collapse } from 'antd';
+import {
+  UserOutlined,
+  LockOutlined,
+  HeartFilled,
+  SafetyCertificateOutlined,
+  KeyOutlined,
+  IdcardOutlined,
+  CheckCircleOutlined,
+} from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useAppStore } from '../../store/appStore';
+import { useHospitalStore } from '../../mockData/mockStore';
 
 const { Title, Text, Paragraph } = Typography;
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const [form] = Form.useForm();
   const login = useAuthStore((state) => state.login);
   const hospitalSettings = useAppStore((state) => state.hospitalSettings);
+  const users = useHospitalStore((state) => state.users);
   const [loading, setLoading] = useState(false);
 
   const onFinish = (values: any) => {
     setLoading(true);
+
     setTimeout(() => {
-      login(
-        {
-          id: 1,
-          username: values.username,
-          role: 'SUPER_ADMIN',
-          isActive: true,
-        },
-        'mock-jwt-token-active'
+      const inputUsername = (values.username || '').trim().toLowerCase();
+      const inputPassword = (values.password || '').trim();
+
+      // Find user from the reactive store
+      const matchedUser = users.find(
+        (u) => u.username.toLowerCase() === inputUsername
       );
-      message.success(`تم تسجيل الدخول بنجاح، مرحباً بك في ${hospitalSettings.nameAr}`);
+
+      if (!matchedUser) {
+        message.error('اسم المستخدم غير مسجل بالنظام! يرجى التأكد أو مراجعة المدير العام.');
+        setLoading(false);
+        return;
+      }
+
+      if (!matchedUser.isActive) {
+        message.error('عذراً، هذا الحساب معطل حالياً بقرار من المدير العام للنظام.');
+        setLoading(false);
+        return;
+      }
+
+      // Check password
+      const userPass = matchedUser.password || 'password123';
+      if (userPass !== inputPassword) {
+        message.error('كلمة المرور غير صحيحة! يرجى إعادة المحاولة.');
+        setLoading(false);
+        return;
+      }
+
+      // Login success
+      login(matchedUser, `token-${matchedUser.id}-${Date.now()}`);
+      message.success(`تم تسجيل الدخول بنجاح! مرحباً بك ${matchedUser.fullName}`);
       setLoading(false);
       navigate('/');
-    }, 600);
+    }, 400);
   };
 
-  const handleQuickLogin = (role: string, name: string) => {
-    login(
-      {
-        id: 1,
-        username: name,
-        role: role as any,
-        isActive: true,
-      },
-      'mock-jwt-token-active'
-    );
-    message.success(`تم الدخول بحساب تجريبي: ${name} (${role})`);
-    navigate('/');
+  const handleSelectQuickAccount = (accountUsername: string, accountPass: string) => {
+    form.setFieldsValue({
+      username: accountUsername,
+      password: accountPass,
+    });
+    message.info(`تم تعبئة بيانات الحساب: ${accountUsername}`);
   };
 
   return (
@@ -53,24 +80,25 @@ export const LoginPage: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #096dd9 0%, #002140 100%)',
-        padding: 20,
+        padding: '24px 16px',
       }}
     >
       <Card
         style={{
-          width: 440,
+          width: '100%',
+          maxWidth: 480,
           borderRadius: 16,
           boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
           overflow: 'hidden',
-          padding: '12px 8px',
+          padding: '12px 10px',
         }}
         bordered={false}
       >
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <div
             style={{
-              width: 56,
-              height: 56,
+              width: 58,
+              height: 58,
               borderRadius: 14,
               background: 'linear-gradient(135deg, #1890ff 0%, #0050b3 100%)',
               display: 'inline-flex',
@@ -79,7 +107,7 @@ export const LoginPage: React.FC = () => {
               color: '#fff',
               fontSize: 30,
               boxShadow: '0 4px 12px rgba(24,144,255,0.4)',
-              marginBottom: 12,
+              marginBottom: 10,
             }}
           >
             <HeartFilled />
@@ -87,54 +115,100 @@ export const LoginPage: React.FC = () => {
           <Title level={3} style={{ margin: '0 0 4px 0' }}>
             {hospitalSettings.nameAr}
           </Title>
-          <Text type="secondary" style={{ fontSize: 13 }}>
-            نظام المعلومات الصحي والإداري المتكامل (HIS/MIS)
+          <Text type="secondary" style={{ fontSize: 13, display: 'block' }}>
+            بوابة تسجيل الدخول ونظام إدارة الصلاحيات الطبية (RBAC)
           </Text>
         </div>
 
-        <Form layout="vertical" onFinish={onFinish} initialValues={{ username: 'admin', password: 'password123' }}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          initialValues={{ username: 'admin', password: 'password123' }}
+        >
           <Form.Item
             name="username"
-            label="اسم المستخدم أو الكود الوظيفي"
+            label={<Text strong>اسم المستخدم (Username)</Text>}
             rules={[{ required: true, message: 'يرجى إدخال اسم المستخدم' }]}
           >
-            <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} size="large" />
+            <Input
+              prefix={<UserOutlined style={{ color: '#1890ff' }} />}
+              placeholder="مثال: admin, reception, doctor..."
+              size="large"
+            />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label="كلمة المرور"
+            label={<Text strong>كلمة المرور (Password)</Text>}
             rules={[{ required: true, message: 'يرجى إدخال كلمة المرور' }]}
           >
-            <Input.Password prefix={<LockOutlined style={{ color: '#bfbfbf' }} />} size="large" />
+            <Input.Password
+              prefix={<LockOutlined style={{ color: '#1890ff' }} />}
+              placeholder="أدخل كلمة المرور الخاصة بحسابك"
+              size="large"
+            />
           </Form.Item>
 
-          <Button type="primary" htmlType="submit" size="large" block loading={loading} style={{ height: 46, fontSize: 16 }}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
+            block
+            loading={loading}
+            icon={<SafetyCertificateOutlined />}
+            style={{ height: 46, fontSize: 16, marginTop: 4 }}
+          >
             تسجيل الدخول للنظام
           </Button>
         </Form>
 
-        <div style={{ marginTop: 24, borderTop: '1px solid #f0f0f0', paddingTop: 16 }}>
-          <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 8, color: '#8c8c8c' }}>
-            دخول سريع بحسابات تجريبية للأدوار المختلفة:
-          </Text>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            <Button size="small" onClick={() => handleQuickLogin('SUPER_ADMIN', 'مدير النظام العام')}>
-              مدير النظام (Admin)
-            </Button>
-            <Button size="small" onClick={() => handleQuickLogin('DOCTOR', 'د. طارق المنشاوي')}>
-              طبيب استشاري
-            </Button>
-            <Button size="small" onClick={() => handleQuickLogin('PHARMACIST', 'صيدلية المستشفى')}>
-              صيدلي
-            </Button>
-            <Button size="small" onClick={() => handleQuickLogin('LAB_TECH', 'المختبر المركزي')}>
-              فني معمل
-            </Button>
-            <Button size="small" onClick={() => handleQuickLogin('ARCHIVIST', 'مسؤول الأرشيف')}>
-              أمين الأرشيف
-            </Button>
+        {/* Pre-configured Demo & Authorized Accounts Guide */}
+        <div style={{ marginTop: 20, borderTop: '1px solid #f0f0f0', paddingTop: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Text strong style={{ fontSize: 12, color: '#595959' }}>
+              الحسابات المصرح لها بالدخول (اضغط للتعبئة الفورية):
+            </Text>
+            <Tag color="blue">{users.length} مسؤولين</Tag>
           </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 180, overflowY: 'auto', paddingRight: 2 }}>
+            {users.map((u) => (
+              <div
+                key={u.id}
+                onClick={() => handleSelectQuickAccount(u.username, u.password || '123456')}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '6px 10px',
+                  borderRadius: 6,
+                  background: '#f5f5f5',
+                  cursor: 'pointer',
+                  border: '1px solid #e8e8e8',
+                  transition: 'all 0.2s',
+                }}
+                className="card-hover"
+              >
+                <Space size="small">
+                  <Tag color={u.isSuperAdmin ? 'red' : u.role === 'DOCTOR' ? 'cyan' : u.role === 'ACCOUNTANT' ? 'green' : 'blue'}>
+                    {u.username}
+                  </Tag>
+                  <Text style={{ fontSize: 12 }}>{u.fullName}</Text>
+                </Space>
+                <Space size="small">
+                  <Text type="secondary" style={{ fontSize: 11, fontFamily: 'monospace' }}>
+                    {u.password || 'password123'}
+                  </Text>
+                  <KeyOutlined style={{ color: '#8c8c8c', fontSize: 11 }} />
+                </Space>
+              </div>
+            ))}
+          </div>
+
+          <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 10, textAlign: 'center' }}>
+            💡 المسؤول الأساسي يمكنه إضافة أو حذف أي مسؤول وتحديد صلاحياته بدقة من داخل الإعدادات.
+          </Text>
         </div>
       </Card>
     </div>

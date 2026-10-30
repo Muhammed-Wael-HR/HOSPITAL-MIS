@@ -7,20 +7,25 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (user: User, token: string) => void;
   logout: () => void;
+  hasPermission: (moduleKey: string) => boolean;
 }
 
-const savedUser = localStorage.getItem('hospital_mis_user');
+const savedUserRaw = localStorage.getItem('hospital_mis_user');
 const savedToken = localStorage.getItem('hospital_mis_token');
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: savedUser ? JSON.parse(savedUser) : {
-    id: 1,
-    username: 'admin',
-    role: 'SUPER_ADMIN',
-    isActive: true,
-  },
-  token: savedToken || 'demo-jwt-token',
-  isAuthenticated: true, // Default to demo session for instant testing
+let initialUser: User | null = null;
+try {
+  if (savedUserRaw) {
+    initialUser = JSON.parse(savedUserRaw);
+  }
+} catch (e) {
+  initialUser = null;
+}
+
+export const useAuthStore = create<AuthState>((set, get) => ({
+  user: initialUser,
+  token: savedToken || null,
+  isAuthenticated: !!(initialUser && savedToken),
   login: (user, token) => {
     localStorage.setItem('hospital_mis_user', JSON.stringify(user));
     localStorage.setItem('hospital_mis_token', token);
@@ -30,5 +35,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem('hospital_mis_user');
     localStorage.removeItem('hospital_mis_token');
     set({ user: null, token: null, isAuthenticated: false });
+  },
+  hasPermission: (moduleKey: string) => {
+    const user = get().user;
+    if (!user) return false;
+    // Super admin has unrestricted access to all modules
+    if (user.isSuperAdmin || user.role === 'SUPER_ADMIN') return true;
+    if (!user.permissions || !Array.isArray(user.permissions)) return false;
+    return user.permissions.includes(moduleKey);
   },
 }));

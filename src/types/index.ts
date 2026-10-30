@@ -21,14 +21,48 @@ export type UserRole =
   | 'HR'
   | 'ARCHIVIST';
 
-/** System user */
+/** System user with RBAC permissions */
 export interface User {
   id: number;
   username: string;
+  password?: string;
+  fullName: string;
   role: UserRole;
   isActive: boolean;
   employeeId?: number;
+  permissions: string[]; // List of module keys e.g. ['dashboard', 'patients', 'appointments']
+  isSuperAdmin?: boolean;
+  createdAt?: string;
+  phone?: string;
+  notes?: string;
 }
+
+/** System Module definition for granular access control */
+export interface SystemModule {
+  key: string;
+  path: string;
+  nameAr: string;
+  nameEn: string;
+  descriptionAr: string;
+  iconName?: string;
+}
+
+export const ALL_SYSTEM_MODULES: SystemModule[] = [
+  { key: 'dashboard', path: '/', nameAr: 'لوحة التحكم الرئيسية', nameEn: 'Dashboard', descriptionAr: 'المؤشرات والرسوم البيانية وسير العمل العام' },
+  { key: 'patients', path: '/patients', nameAr: 'سجل المرضى والملفات الطبية', nameEn: 'Patients Directory', descriptionAr: 'تسجيل المرضى، عرض الملف الطبي الشامل، وتعديل البيانات' },
+  { key: 'appointments', path: '/appointments', nameAr: 'إدارة المواعيد والعيادات الخارجية', nameEn: 'Appointments', descriptionAr: 'حجز المواعيد وتدفق غرف الكشف' },
+  { key: 'admissions', path: '/admissions', nameAr: 'التنويم وخريطة الأسرّة', nameEn: 'Inpatients & Beds', descriptionAr: 'إدارة الغرف والأسرّة وتسكين المرضى والعمليات' },
+  { key: 'medical_records', path: '/medical-records', nameAr: 'السجلات الطبية السريرية (EMR)', nameEn: 'Medical Records', descriptionAr: 'فحوصات SOAP والتشخيصات ICD-10' },
+  { key: 'laboratory', path: '/laboratory', nameAr: 'المختبر المركزي والتحاليل (LIS)', nameEn: 'Laboratory', descriptionAr: 'طلبات التحاليل والنتائج المعملية' },
+  { key: 'radiology', path: '/radiology', nameAr: 'قسم الأشعة والتصوير الطبي (RIS)', nameEn: 'Radiology', descriptionAr: 'فحوصات الرنين والأشعة المقطعية والسينية' },
+  { key: 'pharmacy', path: '/pharmacy', nameAr: 'الصيدلية والمخزون الدوائي', nameEn: 'Pharmacy', descriptionAr: 'صرف الروشتات ومتابعة أرصدة الأدوية وحد الطلب' },
+  { key: 'billing', path: '/billing', nameAr: 'الفوترة والمحاسبة الطبية', nameEn: 'Billing & Invoices', descriptionAr: 'إصدار الفواتير وتحصيل المدفوعات' },
+  { key: 'insurance', path: '/insurance', nameAr: 'التأمين الطبي والمطالبات', nameEn: 'Insurance & Claims', descriptionAr: 'متابعة شركات التأمين والمطالبات والنسب' },
+  { key: 'archive', path: '/archive', nameAr: 'الأرشيف الطبي وإدارة الوثائق (DMS)', nameEn: 'Archive & Documents', descriptionAr: 'أرشفة وتأمين المستندات والإقرارات الطبية' },
+  { key: 'hr', path: '/hr', nameAr: 'الأطقم الطبية وشؤون الموظفين (HR)', nameEn: 'Staff & HR', descriptionAr: 'سجلات الأطباء والتمريض والمناوبات' },
+  { key: 'reports', path: '/reports', nameAr: 'التقارير والمؤشرات الشاملة (MIS)', nameEn: 'MIS Reports', descriptionAr: 'التقارير المالية والطبية الشاملة واستخراج البيانات' },
+  { key: 'settings', path: '/settings', nameAr: 'إعدادات النظام والمستخدمين والربط السحابي', nameEn: 'System Settings', descriptionAr: 'إدارة هوية المنشأة، الأقسام، والمستخدمين والصلاحيات' },
+];
 
 /** Login request payload */
 export interface LoginRequest {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Row, Col, Card, Statistic, Progress, Table, Tag, Button, Typography, Space, Alert } from 'antd';
 import {
   UserOutlined,
@@ -10,11 +10,13 @@ import {
   FolderOpenOutlined,
   AlertOutlined,
   CheckCircleOutlined,
+  FilePdfOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar } from 'recharts';
 import { useHospitalStore } from '../../mockData/mockStore';
 import { StatusBadge } from '../../components/StatusBadge/StatusBadge';
+import { DatabaseExportModal } from '../../components/DatabaseExport/DatabaseExportModal';
 
 const { Title, Text } = Typography;
 
@@ -39,6 +41,7 @@ const departmentRevenueData = [
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const [exportModalVisible, setExportModalVisible] = useState(false);
 
   const patients = useHospitalStore((state) => state.patients);
   const appointments = useHospitalStore((state) => state.appointments);
@@ -106,6 +109,14 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         <Space wrap>
+          <Button
+            type="primary"
+            danger
+            icon={<FilePdfOutlined />}
+            onClick={() => setExportModalVisible(true)}
+          >
+            تصدير قاعدة البيانات (PDF)
+          </Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/patients')}>
             تسجيل مريض جديد
           </Button>
@@ -305,6 +316,12 @@ export const DashboardPage: React.FC = () => {
           </Card>
         </Col>
       </Row>
+
+      {/* Database PDF Export Modal */}
+      <DatabaseExportModal
+        visible={exportModalVisible}
+        onClose={() => setExportModalVisible(false)}
+      />
     </div>
   );
 };
