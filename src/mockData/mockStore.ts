@@ -136,39 +136,40 @@ interface HospitalStoreState {
   toggleUserStatus: (id: number) => void;
 }
 
-export const useHospitalStore = create<HospitalStoreState>((set, get) => ({
-  users: (() => {
-    try {
-      const saved = localStorage.getItem('hospital_mis_custom_users');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch (e) {
-      console.error(e);
+// Persistent collection loader helper
+const loadCollection = <T>(key: string, fallback: T): T => {
+  try {
+    const raw = localStorage.getItem(`hospital_mis_${key}`);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed as T;
     }
-    return INITIAL_USERS;
-  })(),
-  patients: INITIAL_PATIENTS,
-  departments: INITIAL_DEPARTMENTS,
+  } catch {}
+  return fallback;
+};
+
+export const useHospitalStore = create<HospitalStoreState>((set, get) => ({
+  users: loadCollection<User[]>('custom_users', INITIAL_USERS),
+  patients: loadCollection<Patient[]>('patients', INITIAL_PATIENTS),
+  departments: loadCollection<Department[]>('departments', INITIAL_DEPARTMENTS),
   rooms: INITIAL_ROOMS,
-  beds: INITIAL_BEDS,
+  beds: loadCollection<Bed[]>('beds', INITIAL_BEDS),
   employees: INITIAL_EMPLOYEES,
   doctors: INITIAL_DOCTORS,
-  appointments: INITIAL_APPOINTMENTS,
-  admissions: INITIAL_ADMISSIONS,
+  appointments: loadCollection<Appointment[]>('appointments', INITIAL_APPOINTMENTS),
+  admissions: loadCollection<Admission[]>('admissions', INITIAL_ADMISSIONS),
   vitals: INITIAL_VITALS,
   medicalRecords: INITIAL_MEDICAL_RECORDS,
   labTests: INITIAL_LAB_TESTS,
   labOrders: INITIAL_LAB_ORDERS,
   radiologyTypes: INITIAL_RADIOLOGY_TYPES,
   radiologyOrders: INITIAL_RADIOLOGY_ORDERS,
-  medications: INITIAL_MEDICATIONS,
+  medications: loadCollection<Medication[]>('medications', INITIAL_MEDICATIONS),
   prescriptions: INITIAL_PRESCRIPTIONS,
-  invoices: INITIAL_INVOICES,
+  invoices: loadCollection<Invoice[]>('invoices', INITIAL_INVOICES),
   insuranceCompanies: INITIAL_INSURANCE_COMPANIES,
   claims: INITIAL_CLAIMS,
-  archives: INITIAL_ARCHIVES,
+  archives: loadCollection<Archive[]>('archives', INITIAL_ARCHIVES),
 
   // Department implementations
   addDepartment: (dept) => {
@@ -723,3 +724,20 @@ export const useHospitalStore = create<HospitalStoreState>((set, get) => ({
     set({ users: updated });
   },
 }));
+
+// Automatic persistence subscriber
+useHospitalStore.subscribe((state) => {
+  try {
+    localStorage.setItem('hospital_mis_custom_users', JSON.stringify(state.users));
+    localStorage.setItem('hospital_mis_patients', JSON.stringify(state.patients));
+    localStorage.setItem('hospital_mis_departments', JSON.stringify(state.departments));
+    localStorage.setItem('hospital_mis_beds', JSON.stringify(state.beds));
+    localStorage.setItem('hospital_mis_appointments', JSON.stringify(state.appointments));
+    localStorage.setItem('hospital_mis_admissions', JSON.stringify(state.admissions));
+    localStorage.setItem('hospital_mis_medications', JSON.stringify(state.medications));
+    localStorage.setItem('hospital_mis_invoices', JSON.stringify(state.invoices));
+    localStorage.setItem('hospital_mis_archives', JSON.stringify(state.archives));
+  } catch (e) {
+    console.warn('Storage auto-persist notice:', e);
+  }
+});

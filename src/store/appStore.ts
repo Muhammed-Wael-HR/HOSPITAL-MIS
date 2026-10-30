@@ -54,29 +54,36 @@ interface AppState {
 
 // Default values
 const DEFAULT_HOSPITAL: HospitalSettings = {
-  nameAr: 'مستشفى النيل التخصصي',
-  nameEn: 'Nile Specialized Hospital',
-  phone: '0223456789',
+  nameAr: 'فريق الإخلاء الطبي (MEDEVAC TEAM)',
+  nameEn: 'MEDEVAC TEAM - Medical Evacuation & Emergency HIS',
+  phone: '01012345678',
   hotline: '19876',
-  email: 'info@nile-hospital.eg',
-  address: 'شارع النصر - المعادي الجديدة - القاهرة',
+  email: 'ops@medevac-team.org',
+  address: 'مقر القيادة العامة للإخلاء الطبي والطوارئ - القاهرة',
   taxNumber: '789-456-123',
-  commercialReg: '98451 - استثمار القاهرة',
-  gaharCode: 'GAHAR-HOSP-2026-0812',
+  commercialReg: '98451 - ترخيص الإخلاء الطبي',
+  gaharCode: 'GAHAR-MEDEVAC-2026',
 };
 
 const DEFAULT_ADMIN: AdminProfile = {
-  displayName: 'د. محمد حسني',
-  position: 'مدير النظام الطبي',
-  phone: '01012345678',
-  email: 'admin@nile-hospital.eg',
+  displayName: 'قائد الفريق الطبي (MEDEVAC COMMANDER)',
+  position: 'المشرف العام والمسؤول الأساسي',
+  phone: '01000000001',
+  email: 'commander@medevac-team.org',
 };
 
-// Load from localStorage
+// Load from localStorage with smart upgrade
 const loadFromStorage = <T>(key: string, fallback: T): T => {
   try {
     const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    // If it has old legacy name 'مستشفى النيل', modernize it to MEDEVAC TEAM
+    if (key === 'hospital_mis_settings' && parsed.nameAr && parsed.nameAr.includes('النيل')) {
+      localStorage.setItem('hospital_mis_settings', JSON.stringify(fallback));
+      return fallback;
+    }
+    return parsed;
   } catch {
     return fallback;
   }
@@ -115,8 +122,10 @@ export const useAppStore = create<AppState>((set) => ({
   setHospitalSettings: (updates) => {
     set((state) => {
       const merged = { ...state.hospitalSettings, ...updates };
-      localStorage.setItem('hospital_mis_settings', JSON.stringify(merged));
-      // Also update the page title dynamically
+      try {
+        localStorage.setItem('hospital_mis_settings', JSON.stringify(merged));
+      } catch (e) {}
+      // Update page title dynamically
       document.title = `${merged.nameAr} - نظام المعلومات`;
       return { hospitalSettings: merged };
     });
@@ -125,7 +134,16 @@ export const useAppStore = create<AppState>((set) => ({
   setAdminProfile: (updates) => {
     set((state) => {
       const merged = { ...state.adminProfile, ...updates };
-      localStorage.setItem('hospital_mis_admin', JSON.stringify(merged));
+      try {
+        localStorage.setItem('hospital_mis_admin', JSON.stringify(merged));
+        // Sync with active user in localStorage
+        const rawUser = localStorage.getItem('hospital_mis_user');
+        if (rawUser) {
+          const userObj = JSON.parse(rawUser);
+          if (merged.displayName) userObj.fullName = merged.displayName;
+          localStorage.setItem('hospital_mis_user', JSON.stringify(userObj));
+        }
+      } catch (e) {}
       return { adminProfile: merged };
     });
   },

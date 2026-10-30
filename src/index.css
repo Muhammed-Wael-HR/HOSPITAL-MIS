@@ -39,25 +39,6 @@ body {
 
 /* Print styles */
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  #pdf-printable-area, #pdf-printable-area * {
-    visibility: visible;
-  }
-  #pdf-printable-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 10mm !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-  .ant-modal-mask, .ant-modal-wrap, .ant-modal-header, .ant-modal-footer, .ant-modal-close {
-    display: none !important;
-  }
   .ant-layout-sider, .ant-layout-header, .no-print { display: none !important; }
   .ant-layout-content { margin: 0 !important; padding: 0 !important; }
 }

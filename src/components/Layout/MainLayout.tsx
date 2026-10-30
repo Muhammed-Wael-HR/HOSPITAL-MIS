@@ -33,6 +33,7 @@ import { useAuthStore } from '../../store/authStore';
 import { firebaseSync } from '../../services/firebaseSync';
 import { GlobalSearch } from './GlobalSearch';
 import { DatabaseExportModal } from '../DatabaseExport/DatabaseExportModal';
+import { MedevacLogo } from '../Logo/MedevacLogo';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -123,7 +124,7 @@ export const MainLayout: React.FC = () => {
       key: 'profile-info',
       label: (
         <div style={{ padding: '2px 0' }}>
-          <Text strong>{user?.fullName || adminProfile.displayName}</Text>
+          <Text strong>{adminProfile.displayName || user?.fullName || 'قائد الفريق'}</Text>
           <br />
           <Text type="secondary" style={{ fontSize: 12 }}>
             @{user?.username || 'admin'} ({user?.isSuperAdmin ? 'المسؤول الأساسي' : user?.role})
@@ -215,29 +216,21 @@ export const MainLayout: React.FC = () => {
           >
             <div
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 8,
-                background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
+                marginRight: language === 'ar' ? 0 : 10,
+                marginLeft: language === 'ar' ? 10 : 0,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontSize: 20,
-                boxShadow: '0 2px 6px rgba(24,144,255,0.4)',
-                marginRight: language === 'ar' ? 0 : 12,
-                marginLeft: language === 'ar' ? 12 : 0,
               }}
             >
-              <HeartFilled />
+              <MedevacLogo size={38} />
             </div>
             {!sidebarCollapsed && (
               <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                <Text strong style={{ color: '#fff', fontSize: 15, display: 'block' }}>
+                <Text strong style={{ color: '#fff', fontSize: 14, display: 'block', letterSpacing: '0.3px' }}>
                   {hospitalSettings.nameAr}
                 </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
-                  نظام المعلومات الصحي المتكامل (HIS)
+                <Text style={{ color: '#00d2ff', fontSize: 10, fontWeight: 600 }}>
+                  MEDEVAC OPERATIONS MIS
                 </Text>
               </div>
             )}
@@ -368,7 +361,7 @@ export const MainLayout: React.FC = () => {
                 {!isMobile && (
                   <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                     <Text strong style={{ fontSize: 13 }}>
-                      {user?.fullName || adminProfile.displayName}
+                      {adminProfile.displayName || user?.fullName || 'قائد الفريق'}
                     </Text>
                     <Text type="secondary" style={{ fontSize: 11 }}>
                       {user?.isSuperAdmin ? 'المسؤول الأساسي' : user?.role || adminProfile.position}
@@ -395,27 +388,13 @@ export const MainLayout: React.FC = () => {
       <Drawer
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontSize: 16,
-              }}
-            >
-              <HeartFilled />
-            </div>
+            <MedevacLogo size={32} />
             <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
               <Text strong style={{ color: '#fff', fontSize: 14, display: 'block' }}>
                 {hospitalSettings.nameAr}
               </Text>
               <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}>
-                نظام المعلومات الصحي المتكامل
+                MEDEVAC OPERATIONS MIS
               </Text>
             </div>
           </div>

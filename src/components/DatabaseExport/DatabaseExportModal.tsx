@@ -17,6 +17,7 @@ import {
 import { useHospitalStore } from '../../mockData/mockStore';
 import { useAppStore } from '../../store/appStore';
 import { useAuthStore } from '../../store/authStore';
+import { MedevacLogo } from '../Logo/MedevacLogo';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -49,7 +50,109 @@ export const DatabaseExportModal: React.FC<Props> = ({ visible, onClose }) => {
   const occupiedBeds = beds.filter((b) => b.status === 'OCCUPIED').length;
 
   const handlePrint = () => {
-    window.print();
+    const printContent = document.getElementById('pdf-printable-area');
+    if (!printContent) {
+      message.error('تعذر تحديد منطقة الطباعة، يرجى المحاولة مرة أخرى');
+      return;
+    }
+
+    message.loading({ content: 'جاري تجهيز مستند الـ PDF للطباعة والحفظ...', key: 'printing' });
+
+    // Create an isolated hidden iframe for 100% reliable printing without modal CSS conflicts
+    const iframe = document.createElement('iframe');
+    iframe.id = 'export-print-iframe';
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (!doc) {
+      message.error('تعذر إنشاء نافذة الطباعة');
+      return;
+    }
+
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html lang="ar" dir="rtl">
+        <head>
+          <meta charset="utf-8">
+          <title>${hospitalSettings.nameAr} - تقرير قاعدة البيانات الشاملة</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700;800&display=swap" rel="stylesheet">
+          <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+              font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+            }
+            body {
+              background: #ffffff !important;
+              color: #000000 !important;
+              padding: 10mm 8mm;
+              font-size: 10.5pt;
+              line-height: 1.4;
+              direction: rtl;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 16px;
+              page-break-inside: auto;
+            }
+            tr {
+              page-break-inside: avoid;
+              page-break-after: auto;
+            }
+            th, td {
+              border: 1px solid #d9d9d9;
+              padding: 5px 6px;
+              text-align: right;
+            }
+            th {
+              background-color: #f0f5ff !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+              font-weight: 700;
+              color: #002140;
+            }
+            @page {
+              size: A4 portrait;
+              margin: 8mm 6mm;
+            }
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      message.destroy('printing');
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+
+      // Clean up iframe after print dialog completes
+      setTimeout(() => {
+        try {
+          document.body.removeChild(iframe);
+        } catch (e) {}
+      }, 3000);
+    }, 500);
   };
 
   const handleDownloadJson = () => {
@@ -133,28 +236,13 @@ export const DatabaseExportModal: React.FC<Props> = ({ visible, onClose }) => {
           }}
         >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 10,
-                  background: '#1890ff',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 24,
-                  fontWeight: 'bold',
-                }}
-              >
-                +
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <MedevacLogo size={54} />
               <div>
                 <h1 style={{ margin: 0, fontSize: 22, color: '#002140', fontWeight: 800 }}>
                   {hospitalSettings.nameAr}
                 </h1>
-                <div style={{ fontSize: 13, color: '#595959' }}>{hospitalSettings.nameEn}</div>
+                <div style={{ fontSize: 13, color: '#0050b3', fontWeight: 600 }}>{hospitalSettings.nameEn}</div>
               </div>
             </div>
             <div style={{ marginTop: 8, fontSize: 11, color: '#595959' }}>

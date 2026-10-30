@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useAppStore } from '../../store/appStore';
 import { useHospitalStore } from '../../mockData/mockStore';
+import { MedevacLogo } from '../../components/Logo/MedevacLogo';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -95,28 +96,14 @@ export const LoginPage: React.FC = () => {
         bordered={false}
       >
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div
-            style={{
-              width: 58,
-              height: 58,
-              borderRadius: 14,
-              background: 'linear-gradient(135deg, #1890ff 0%, #0050b3 100%)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontSize: 30,
-              boxShadow: '0 4px 12px rgba(24,144,255,0.4)',
-              marginBottom: 10,
-            }}
-          >
-            <HeartFilled />
+          <div style={{ display: 'inline-block', marginBottom: 10 }}>
+            <MedevacLogo size={62} />
           </div>
           <Title level={3} style={{ margin: '0 0 4px 0' }}>
             {hospitalSettings.nameAr}
           </Title>
           <Text type="secondary" style={{ fontSize: 13, display: 'block' }}>
-            بوابة تسجيل الدخول ونظام إدارة الصلاحيات الطبية (RBAC)
+            MEDEVAC OPERATIONS & HOSPITAL MIS - بوابة تسجيل الدخول
           </Text>
         </div>
 

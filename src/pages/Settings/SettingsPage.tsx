@@ -45,6 +45,7 @@ import {
 } from '@ant-design/icons';
 import { useHospitalStore } from '../../mockData/mockStore';
 import { useAppStore } from '../../store/appStore';
+import { useAuthStore } from '../../store/authStore';
 import { firebaseSync } from '../../services/firebaseSync';
 import { Department, User, ALL_SYSTEM_MODULES } from '../../types';
 import { DatabaseExportModal } from '../../components/DatabaseExport/DatabaseExportModal';
@@ -93,7 +94,18 @@ export const SettingsPage: React.FC = () => {
   // Save admin profile
   const handleSaveAdmin = (values: any) => {
     setAdminProfile(values);
-    message.success('تم تحديث بيانات المسؤول العام بنجاح');
+    // Update active logged in user
+    useAuthStore.getState().updateCurrentUser({
+      fullName: values.displayName,
+    });
+    // Update super admin in users list
+    const superAdmin = users.find((u) => u.isSuperAdmin);
+    if (superAdmin) {
+      updateUser(superAdmin.id, {
+        fullName: values.displayName,
+      });
+    }
+    message.success('تم تحديث بيانات المسؤول العام بنجاح وظهرت فوراً في الشريط العلوي وسجلات النظام!');
   };
 
   // Open department modal for create or edit

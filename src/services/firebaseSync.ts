@@ -142,20 +142,44 @@ class FirebaseSyncManager {
       const appStore = useAppStore.getState();
 
       // Update Hospital Store state
-      if (cloudData.patients) useHospitalStore.setState({ patients: cloudData.patients });
-      if (cloudData.departments) useHospitalStore.setState({ departments: cloudData.departments });
-      if (cloudData.appointments) useHospitalStore.setState({ appointments: cloudData.appointments });
-      if (cloudData.admissions) useHospitalStore.setState({ admissions: cloudData.admissions });
-      if (cloudData.beds) useHospitalStore.setState({ beds: cloudData.beds });
+      if (cloudData.patients) {
+        useHospitalStore.setState({ patients: cloudData.patients });
+        try { localStorage.setItem('hospital_mis_patients', JSON.stringify(cloudData.patients)); } catch (e) {}
+      }
+      if (cloudData.departments) {
+        useHospitalStore.setState({ departments: cloudData.departments });
+        try { localStorage.setItem('hospital_mis_departments', JSON.stringify(cloudData.departments)); } catch (e) {}
+      }
+      if (cloudData.appointments) {
+        useHospitalStore.setState({ appointments: cloudData.appointments });
+        try { localStorage.setItem('hospital_mis_appointments', JSON.stringify(cloudData.appointments)); } catch (e) {}
+      }
+      if (cloudData.admissions) {
+        useHospitalStore.setState({ admissions: cloudData.admissions });
+        try { localStorage.setItem('hospital_mis_admissions', JSON.stringify(cloudData.admissions)); } catch (e) {}
+      }
+      if (cloudData.beds) {
+        useHospitalStore.setState({ beds: cloudData.beds });
+        try { localStorage.setItem('hospital_mis_beds', JSON.stringify(cloudData.beds)); } catch (e) {}
+      }
       if (cloudData.vitals) useHospitalStore.setState({ vitals: cloudData.vitals });
       if (cloudData.medicalRecords) useHospitalStore.setState({ medicalRecords: cloudData.medicalRecords });
       if (cloudData.labOrders) useHospitalStore.setState({ labOrders: cloudData.labOrders });
       if (cloudData.radiologyOrders) useHospitalStore.setState({ radiologyOrders: cloudData.radiologyOrders });
-      if (cloudData.medications) useHospitalStore.setState({ medications: cloudData.medications });
+      if (cloudData.medications) {
+        useHospitalStore.setState({ medications: cloudData.medications });
+        try { localStorage.setItem('hospital_mis_medications', JSON.stringify(cloudData.medications)); } catch (e) {}
+      }
       if (cloudData.prescriptions) useHospitalStore.setState({ prescriptions: cloudData.prescriptions });
-      if (cloudData.invoices) useHospitalStore.setState({ invoices: cloudData.invoices });
+      if (cloudData.invoices) {
+        useHospitalStore.setState({ invoices: cloudData.invoices });
+        try { localStorage.setItem('hospital_mis_invoices', JSON.stringify(cloudData.invoices)); } catch (e) {}
+      }
       if (cloudData.claims) useHospitalStore.setState({ claims: cloudData.claims });
-      if (cloudData.archives) useHospitalStore.setState({ archives: cloudData.archives });
+      if (cloudData.archives) {
+        useHospitalStore.setState({ archives: cloudData.archives });
+        try { localStorage.setItem('hospital_mis_archives', JSON.stringify(cloudData.archives)); } catch (e) {}
+      }
       if (cloudData.users && Array.isArray(cloudData.users) && cloudData.users.length > 0) {
         useHospitalStore.setState({ users: cloudData.users });
         try {
@@ -163,13 +187,20 @@ class FirebaseSyncManager {
         } catch (e) {}
       }
 
-      // Update App Identity / Admin Profile
+      // Update App Identity / Admin Profile (protect MEDEVAC TEAM from legacy overwrite)
       if (cloudData.hospitalSettings) {
-        useAppStore.setState({ hospitalSettings: cloudData.hospitalSettings });
-        document.title = `${cloudData.hospitalSettings.nameAr || 'المستشفى'} - نظام المعلومات الصحي`;
+        if (!cloudData.hospitalSettings.nameAr || !cloudData.hospitalSettings.nameAr.includes('النيل')) {
+          useAppStore.setState({ hospitalSettings: cloudData.hospitalSettings });
+          try { localStorage.setItem('hospital_mis_settings', JSON.stringify(cloudData.hospitalSettings)); } catch (e) {}
+          document.title = `${cloudData.hospitalSettings.nameAr || 'MEDEVAC TEAM'} - نظام المعلومات الصحي`;
+        } else {
+          // Cloud has legacy old name 'مستشفى النيل', immediately push MEDEVAC TEAM to cloud!
+          setTimeout(() => this.pushLocalToCloud(), 1000);
+        }
       }
       if (cloudData.adminProfile) {
         useAppStore.setState({ adminProfile: cloudData.adminProfile });
+        try { localStorage.setItem('hospital_mis_admin', JSON.stringify(cloudData.adminProfile)); } catch (e) {}
       }
     } finally {
       setTimeout(() => {

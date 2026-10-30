@@ -730,7 +730,7 @@ export const INITIAL_USERS: User[] = [
     id: 1,
     username: 'admin',
     password: 'password123',
-    fullName: 'المدير العام (المسؤول الأساسي للنظام)',
+    fullName: 'قائد الفريق الطبي (MEDEVAC COMMANDER)',
     role: 'SUPER_ADMIN',
     isActive: true,
     isSuperAdmin: true,
@@ -752,7 +752,7 @@ export const INITIAL_USERS: User[] = [
     ],
     createdAt: '2026-01-01T08:00:00Z',
     phone: '01000000001',
-    notes: 'حساب المدير العام الرئيسي صاحب كامل الصلاحيات والتحكم بالمستخدمين والمنشأة',
+    notes: 'حساب قائد ومسؤول فريق MEDEVAC الرئيسي صاحب كامل الصلاحيات والتحكم بالمنظومة',
   },
   {
     id: 2,

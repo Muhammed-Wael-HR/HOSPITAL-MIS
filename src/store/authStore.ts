@@ -7,6 +7,7 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (user: User, token: string) => void;
   logout: () => void;
+  updateCurrentUser: (data: Partial<User>) => void;
   hasPermission: (moduleKey: string) => boolean;
 }
 
@@ -35,6 +36,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     localStorage.removeItem('hospital_mis_user');
     localStorage.removeItem('hospital_mis_token');
     set({ user: null, token: null, isAuthenticated: false });
+  },
+  updateCurrentUser: (data) => {
+    const currentUser = get().user;
+    if (!currentUser) return;
+    const updated = { ...currentUser, ...data };
+    try {
+      localStorage.setItem('hospital_mis_user', JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+    set({ user: updated });
   },
   hasPermission: (moduleKey: string) => {
     const user = get().user;
