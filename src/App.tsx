@@ -12,6 +12,7 @@ import { useAuthStore } from './store/authStore';
 import { MainLayout } from './components/Layout/MainLayout';
 import { LoginPage } from './pages/Auth/LoginPage';
 import { DashboardPage } from './pages/Dashboard/DashboardPage';
+import { SystemSchemaPage } from './pages/Schema/SystemSchemaPage';
 import { PatientListPage } from './pages/Patients/PatientListPage';
 import { PatientProfilePage } from './pages/Patients/PatientProfilePage';
 import { AppointmentListPage } from './pages/Appointments/AppointmentListPage';
@@ -96,6 +97,7 @@ export const App: React.FC = () => {
             }
           >
             <Route index element={<PermissionRoute moduleKey="dashboard"><DashboardPage /></PermissionRoute>} />
+            <Route path="schema" element={<PermissionRoute moduleKey="dashboard"><SystemSchemaPage /></PermissionRoute>} />
             <Route path="patients" element={<PermissionRoute moduleKey="patients"><PatientListPage /></PermissionRoute>} />
             <Route path="patients/:id" element={<PermissionRoute moduleKey="patients"><PatientProfilePage /></PermissionRoute>} />
             <Route path="appointments" element={<PermissionRoute moduleKey="appointments"><AppointmentListPage /></PermissionRoute>} />

@@ -26,6 +26,7 @@ import {
   CloudServerOutlined,
   SyncOutlined,
   FilePdfOutlined,
+  BranchesOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAppStore } from '../../store/appStore';
@@ -94,6 +95,7 @@ export const MainLayout: React.FC = () => {
 
   const ALL_MENU_DEFINITIONS = [
     { key: '/', moduleKey: 'dashboard', icon: <DashboardOutlined />, label: language === 'ar' ? 'لوحة التحكم الرئيسية' : 'Dashboard' },
+    { key: '/schema', moduleKey: 'dashboard', icon: <BranchesOutlined />, label: language === 'ar' ? 'سكيما وهيكلية النظام' : 'System Architecture Schema' },
     { key: '/patients', moduleKey: 'patients', icon: <UserOutlined />, label: language === 'ar' ? 'سجل المرضى والملفات' : 'Patients Directory' },
     { key: '/appointments', moduleKey: 'appointments', icon: <CalendarOutlined />, label: language === 'ar' ? 'إدارة المواعيد والعيادات' : 'Appointments' },
     { key: '/admissions', moduleKey: 'admissions', icon: <MedicineBoxOutlined />, label: language === 'ar' ? 'التنويم وخريطة الأسرّة' : 'Inpatients & Beds' },

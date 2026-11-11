@@ -11,19 +11,22 @@ import {
   AlertOutlined,
   CheckCircleOutlined,
   FilePdfOutlined,
-  FileExcelOutlined,
   ThunderboltOutlined,
   SafetyCertificateOutlined,
+  BranchesOutlined,
+  ExperimentOutlined,
+  ShopOutlined,
+  FileTextOutlined,
+  ApartmentOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar } from 'recharts';
 import { useHospitalStore } from '../../mockData/mockStore';
 import { StatusBadge } from '../../components/StatusBadge/StatusBadge';
 import { DatabaseExportModal } from '../../components/DatabaseExport/DatabaseExportModal';
-import { InteractiveSystemSchema } from '../../components/Dashboard/InteractiveSystemSchema';
 import { MedevacLogo } from '../../components/Logo/MedevacLogo';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 const visitorChartData = [
   { day: 'السبت', patients: 45, emergency: 12 },
@@ -54,7 +57,6 @@ export const DashboardPage: React.FC = () => {
   const admissions = useHospitalStore((state) => state.admissions);
   const invoices = useHospitalStore((state) => state.invoices);
   const medications = useHospitalStore((state) => state.medications);
-  const archives = useHospitalStore((state) => state.archives);
   const users = useHospitalStore((state) => state.users);
 
   // Calculations
@@ -111,15 +113,14 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div style={{ paddingBottom: 24 }}>
-      {/* Tactical Hero Banner */}
+      {/* Refined Medical Hero Banner */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #091322 0%, #0d213f 50%, #0c2b54 100%)',
+          background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 60%, #075985 100%)',
           borderRadius: 16,
-          padding: '20px 24px',
-          marginBottom: 20,
-          border: '1px solid #1e3a66',
-          boxShadow: '0 8px 30px rgba(0, 242, 254, 0.08)',
+          padding: '24px 28px',
+          marginBottom: 24,
+          boxShadow: '0 8px 24px rgba(2, 132, 199, 0.18)',
           color: '#fff',
           display: 'flex',
           justifyContent: 'space-between',
@@ -128,22 +129,24 @@ export const DashboardPage: React.FC = () => {
           gap: 16,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <MedevacLogo size={56} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <div style={{ background: '#fff', borderRadius: 14, padding: 8, display: 'flex' }}>
+            <MedevacLogo size={52} />
+          </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <Title level={3} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>
-                MEDEVAC OPERATIONS & HOSPITAL MIS
+                MEDEVAC TEAM — Hospital MIS Platform
               </Title>
-              <Tag color="#00f2fe" style={{ color: '#000', fontWeight: 'bold' }}>
+              <Tag color="#38bdf8" style={{ color: '#0369a1', fontWeight: 'bold' }}>
                 LIVE READY v4.0
               </Tag>
               <Tag color="#10b981" style={{ color: '#fff' }}>
                 <ThunderboltOutlined /> مزامنة سحابية نشطة
               </Tag>
             </div>
-            <Text style={{ color: '#94a3b8', fontSize: 13, marginTop: 4, display: 'block' }}>
-              منظومة إدارة معلومات الإخلاء الطبي والمستشفيات الذكية • قاعدة بيانات حية ({patients.length} مريض، {appointments.length} موعد، {users.length} مسؤول)
+            <Text style={{ color: '#e0f2fe', fontSize: 13, marginTop: 6, display: 'block' }}>
+              نظام إدارة المعلومات الصحية والمستشفيات الذكية • قاعدة بيانات متكاملة ({patients.length} مريض، {appointments.length} موعد مجدول، {users.length} مستخدم نشط)
             </Text>
           </div>
         </div>
@@ -157,24 +160,24 @@ export const DashboardPage: React.FC = () => {
             style={{ fontWeight: 600, borderRadius: 8 }}
             onClick={() => setExportModalVisible(true)}
           >
-            تصدير قاعدة البيانات (PDF)
+            تصدير واستخراج قاعدة البيانات (PDF)
           </Button>
 
           <Button
             type="primary"
-            icon={<FileExcelOutlined />}
+            icon={<BranchesOutlined />}
             size="large"
-            style={{ background: '#10b981', borderColor: '#10b981', fontWeight: 600, borderRadius: 8 }}
-            href="/MEDEVAC_TEAM_Database.xlsx"
-            download="MEDEVAC_TEAM_Database.xlsx"
+            style={{ background: '#fff', color: '#0369a1', fontWeight: 600, borderRadius: 8, border: 'none' }}
+            onClick={() => navigate('/schema')}
           >
-            تنزيل الإكسيل (.xlsx)
+            سكيما وهيكلية النظام
           </Button>
 
           <Button
+            type="primary"
             icon={<PlusOutlined />}
             size="large"
-            style={{ fontWeight: 600, borderRadius: 8 }}
+            style={{ background: '#10b981', borderColor: '#10b981', fontWeight: 600, borderRadius: 8 }}
             onClick={() => navigate('/patients')}
           >
             تسجيل مريض جديد
@@ -187,12 +190,11 @@ export const DashboardPage: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card
             bordered={false}
-            className="dashboard-stat-card"
             style={{
               background: '#fff',
-              borderRadius: 12,
-              borderTop: '3px solid #0284c7',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
+              borderRadius: 14,
+              borderTop: '4px solid #0284c7',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
             }}
           >
             <Statistic
@@ -201,7 +203,7 @@ export const DashboardPage: React.FC = () => {
               prefix={<UserOutlined style={{ color: '#0284c7', marginLeft: 8 }} />}
               suffix={
                 <Tag color="cyan" style={{ fontSize: 12, marginRight: 6 }}>
-                  15 ملف مكتمل
+                  15 ملف معتمد
                 </Tag>
               }
             />
@@ -215,12 +217,11 @@ export const DashboardPage: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card
             bordered={false}
-            className="dashboard-stat-card"
             style={{
               background: '#fff',
-              borderRadius: 12,
-              borderTop: '3px solid #f59e0b',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
+              borderRadius: 14,
+              borderTop: '4px solid #f59e0b',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
             }}
           >
             <Statistic
@@ -229,12 +230,16 @@ export const DashboardPage: React.FC = () => {
               suffix="%"
               prefix={<MedicineBoxOutlined style={{ color: '#f59e0b', marginLeft: 8 }} />}
             />
-            <div style={{ marginTop: 8 }}>
-              <Progress percent={occupancyRate} strokeColor="#f59e0b" size="small" showInfo={false} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                <Text type="secondary">{occupiedBeds} سرير مشغول</Text>
-                <Text type="secondary">{totalBeds - occupiedBeds} شاغر وجاهز للإخلاء</Text>
-              </div>
+            <Progress
+              percent={occupancyRate}
+              strokeColor="#f59e0b"
+              showInfo={false}
+              size="small"
+              style={{ marginTop: 8 }}
+            />
+            <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between' }}>
+              <Text type="secondary">المشغول: {occupiedBeds} سرير</Text>
+              <Text type="secondary">المتاح: {totalBeds - occupiedBeds} سرير</Text>
             </div>
           </Card>
         </Col>
@@ -242,12 +247,11 @@ export const DashboardPage: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card
             bordered={false}
-            className="dashboard-stat-card"
             style={{
               background: '#fff',
-              borderRadius: 12,
-              borderTop: '3px solid #10b981',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
+              borderRadius: 14,
+              borderTop: '4px solid #10b981',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
             }}
           >
             <Statistic
@@ -270,12 +274,11 @@ export const DashboardPage: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card
             bordered={false}
-            className="dashboard-stat-card"
             style={{
               background: '#fff',
-              borderRadius: 12,
-              borderTop: '3px solid #8b5cf6',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
+              borderRadius: 14,
+              borderTop: '4px solid #8b5cf6',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
             }}
           >
             <Statistic
@@ -292,8 +295,36 @@ export const DashboardPage: React.FC = () => {
         </Col>
       </Row>
 
-      {/* Interactive Schema Component (الطلب الأساسي للمستخدم) */}
-      <InteractiveSystemSchema onOpenPdfExport={() => setExportModalVisible(true)} />
+      {/* Quick Clinical Shortcuts Strip */}
+      <Card
+        bordered={false}
+        style={{
+          borderRadius: 14,
+          marginTop: 16,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+          background: '#f8fafc',
+          border: '1px solid #e2e8f0',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <Space align="center">
+            <ApartmentOutlined style={{ color: '#0284c7', fontSize: 18 }} />
+            <Text strong style={{ color: '#0f172a' }}>الوصول السريع للأقسام الطبية والتشغيلية:</Text>
+          </Space>
+          <Space wrap>
+            <Button icon={<UserOutlined />} onClick={() => navigate('/patients')}>دليل المرضى</Button>
+            <Button icon={<CalendarOutlined />} onClick={() => navigate('/appointments')}>حجز العيادات</Button>
+            <Button icon={<MedicineBoxOutlined />} onClick={() => navigate('/admissions')}>خريطة الأسرّة</Button>
+            <Button icon={<FileTextOutlined />} onClick={() => navigate('/medical-records')}>الملفات الطبية</Button>
+            <Button icon={<ExperimentOutlined />} onClick={() => navigate('/laboratory')}>المختبر (LIS)</Button>
+            <Button icon={<ShopOutlined />} onClick={() => navigate('/pharmacy')}>الصيدلية والمخزون</Button>
+            <Button icon={<DollarOutlined />} onClick={() => navigate('/billing')}>الفوترة والمالية</Button>
+            <Button icon={<BranchesOutlined />} type="dashed" onClick={() => navigate('/schema')} style={{ borderColor: '#0284c7', color: '#0284c7', fontWeight: 600 }}>
+              سكيما النظام بالكامل
+            </Button>
+          </Space>
+        </div>
+      </Card>
 
       {/* Charts Section */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
@@ -302,7 +333,7 @@ export const DashboardPage: React.FC = () => {
             bordered={false}
             title="حركة تدفق المرضى وحالات الإخلاء والطوارئ الأسبوعية"
             extra={<Text type="secondary">محدث لحظياً</Text>}
-            style={{ borderRadius: 12, boxShadow: '0 4px 14px rgba(0,0,0,0.05)' }}
+            style={{ borderRadius: 14, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
           >
             <div style={{ height: 280, width: '100%' }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -333,7 +364,7 @@ export const DashboardPage: React.FC = () => {
           <Card
             bordered={false}
             title="توزيع إيرادات الأقسام الطبية (ج.م)"
-            style={{ borderRadius: 12, boxShadow: '0 4px 14px rgba(0,0,0,0.05)' }}
+            style={{ borderRadius: 14, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
           >
             <div style={{ height: 280, width: '100%' }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -357,7 +388,7 @@ export const DashboardPage: React.FC = () => {
             bordered={false}
             title="أحدث حالات التنويم بالأقسام وجاهزية الأسرة"
             extra={<Button type="link" onClick={() => navigate('/admissions')}>عرض خريطة الأسرّة بالكامل</Button>}
-            style={{ borderRadius: 12, boxShadow: '0 4px 14px rgba(0,0,0,0.05)' }}
+            style={{ borderRadius: 14, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
           >
             <Table
               dataSource={recentAdmissions}
@@ -372,50 +403,66 @@ export const DashboardPage: React.FC = () => {
         <Col xs={24} lg={8}>
           <Card
             bordered={false}
-            title="تنبيهات المنظومة الطبية الفورية"
-            extra={<Tag color="red">عاجل</Tag>}
-            style={{ borderRadius: 12, boxShadow: '0 4px 14px rgba(0,0,0,0.05)' }}
+            title="حالة الجاهزية والتنبيهات السريعة"
+            style={{ borderRadius: 14, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
           >
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
-              {lowStockCount > 0 && (
+              {lowStockCount > 0 ? (
                 <Alert
-                  message={`تنبيه صيدلية: يوجد ${lowStockCount} دواء دون حد الطلب الأدنى`}
-                  description="صنف أوجمانتين وبيتاميثازون قارب على النفاد من مخزن الطوارئ."
                   type="warning"
                   showIcon
                   icon={<AlertOutlined />}
+                  message={<Text strong>تنبيه نقص المخزون الدوائي</Text>}
+                  description={`يوجد ${lowStockCount} أصناف دوائية وصلت إلى حد إعادة الطلب الأدنى.`}
                   action={
-                    <Button size="small" type="primary" onClick={() => navigate('/pharmacy')}>
-                      المخزن
+                    <Button size="small" type="primary" ghost onClick={() => navigate('/pharmacy')}>
+                      فحص الصيدلية
                     </Button>
                   }
                 />
+              ) : (
+                <Alert
+                  type="success"
+                  showIcon
+                  icon={<CheckCircleOutlined />}
+                  message="المخزون الدوائي آمن ومكتمل"
+                />
               )}
 
-              <Alert
-                message="مطالبة تأمين بحاجة للمراجعة"
-                description="مطالبة شركة بوبا رقم CLM-20261027-001 قيد الفحص المالي بمبلغ 200 ج.م."
-                type="info"
-                showIcon
-                action={
-                  <Button size="small" onClick={() => navigate('/insurance')}>
-                    مراجعة
-                  </Button>
-                }
-              />
+              <div
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 8,
+                  padding: '12px 16px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text strong>طاقة استيعاب العناية المركزة (ICU)</Text>
+                  <Tag color="error">حرجة (75%)</Tag>
+                </div>
+                <Progress percent={75} status="exception" size="small" />
+                <Text type="secondary" style={{ fontSize: 12, marginTop: 4, display: 'block' }}>
+                  الأسرّة الشاغرة في قسم العناية المركزة: سرير واحد فقط.
+                </Text>
+              </div>
 
-              <Alert
-                message="اعتماد نتائج المختبر المركزي (LIS)"
-                description="تم اعتماد نتائج تحاليل صورة الدم الكاملة (CBC) للمريض أحمد محمود إبراهيم."
-                type="success"
-                showIcon
-                icon={<CheckCircleOutlined />}
-                action={
-                  <Button size="small" onClick={() => navigate('/laboratory')}>
-                    المعمل
-                  </Button>
-                }
-              />
+              <div
+                style={{
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: 8,
+                  padding: '12px 16px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text strong style={{ color: '#166534' }}>حالة الربط السحابي والأمان</Text>
+                  <Tag color="success">متصل بنجاح</Tag>
+                </div>
+                <Text style={{ fontSize: 12, color: '#15803d' }}>
+                  قاعدة البيانات متصلة بسحابة Firebase بتشفير كامل، وكافة الأقسام الـ 14 تعمل بتوافق تام.
+                </Text>
+              </div>
             </Space>
           </Card>
         </Col>
