@@ -141,18 +141,25 @@ class FirebaseSyncManager {
       const hospitalStore = useHospitalStore.getState();
       const appStore = useAppStore.getState();
 
-      // Update Hospital Store state
-      if (cloudData.patients) {
-        useHospitalStore.setState({ patients: cloudData.patients });
-        try { localStorage.setItem('hospital_mis_patients', JSON.stringify(cloudData.patients)); } catch (e) {}
+      // Update Hospital Store state with dataset upgrade protection
+      if (cloudData.patients && Array.isArray(cloudData.patients)) {
+        if (cloudData.patients.length >= 15) {
+          useHospitalStore.setState({ patients: cloudData.patients });
+          try { localStorage.setItem('hospital_mis_patients', JSON.stringify(cloudData.patients)); } catch (e) {}
+        } else {
+          // Cloud has legacy short dataset, trigger background sync to elevate cloud
+          setTimeout(() => this.pushLocalToCloud(), 1000);
+        }
       }
       if (cloudData.departments) {
         useHospitalStore.setState({ departments: cloudData.departments });
         try { localStorage.setItem('hospital_mis_departments', JSON.stringify(cloudData.departments)); } catch (e) {}
       }
-      if (cloudData.appointments) {
-        useHospitalStore.setState({ appointments: cloudData.appointments });
-        try { localStorage.setItem('hospital_mis_appointments', JSON.stringify(cloudData.appointments)); } catch (e) {}
+      if (cloudData.appointments && Array.isArray(cloudData.appointments)) {
+        if (cloudData.appointments.length >= 20) {
+          useHospitalStore.setState({ appointments: cloudData.appointments });
+          try { localStorage.setItem('hospital_mis_appointments', JSON.stringify(cloudData.appointments)); } catch (e) {}
+        }
       }
       if (cloudData.admissions) {
         useHospitalStore.setState({ admissions: cloudData.admissions });
@@ -171,9 +178,11 @@ class FirebaseSyncManager {
         try { localStorage.setItem('hospital_mis_medications', JSON.stringify(cloudData.medications)); } catch (e) {}
       }
       if (cloudData.prescriptions) useHospitalStore.setState({ prescriptions: cloudData.prescriptions });
-      if (cloudData.invoices) {
-        useHospitalStore.setState({ invoices: cloudData.invoices });
-        try { localStorage.setItem('hospital_mis_invoices', JSON.stringify(cloudData.invoices)); } catch (e) {}
+      if (cloudData.invoices && Array.isArray(cloudData.invoices)) {
+        if (cloudData.invoices.length >= 15) {
+          useHospitalStore.setState({ invoices: cloudData.invoices });
+          try { localStorage.setItem('hospital_mis_invoices', JSON.stringify(cloudData.invoices)); } catch (e) {}
+        }
       }
       if (cloudData.claims) useHospitalStore.setState({ claims: cloudData.claims });
       if (cloudData.archives) {

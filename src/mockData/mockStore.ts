@@ -136,9 +136,17 @@ interface HospitalStoreState {
   toggleUserStatus: (id: number) => void;
 }
 
-// Persistent collection loader helper
+// Persistent collection loader helper with auto-upgrade to full MEDEVAC dataset
+const DATASET_VERSION = 'v4_medevac_full_official_data';
+
 const loadCollection = <T>(key: string, fallback: T): T => {
   try {
+    const currentVer = localStorage.getItem('hospital_mis_dataset_version');
+    if (currentVer !== DATASET_VERSION) {
+      // Automatic upgrade to full 15 patients, 22 appointments, etc.
+      localStorage.setItem(`hospital_mis_${key}`, JSON.stringify(fallback));
+      return fallback;
+    }
     const raw = localStorage.getItem(`hospital_mis_${key}`);
     if (raw) {
       const parsed = JSON.parse(raw);
@@ -147,6 +155,11 @@ const loadCollection = <T>(key: string, fallback: T): T => {
   } catch {}
   return fallback;
 };
+
+// Mark version
+try {
+  localStorage.setItem('hospital_mis_dataset_version', DATASET_VERSION);
+} catch {}
 
 export const useHospitalStore = create<HospitalStoreState>((set, get) => ({
   users: loadCollection<User[]>('custom_users', INITIAL_USERS),
